@@ -1,0 +1,12 @@
+path: /games/new
+title: Start a game
+access: signed_in
+interface_views:
+  - type: form
+    creates: Game
+    intro: "You play white. Choose who plays black — choose yourself to move both sides."
+    fields:
+      - {field: black_id, help: "Your opponent"}
+    submit: "Start"
+    then: {page: game, id: saved.id}
+    cancel: {page: games}

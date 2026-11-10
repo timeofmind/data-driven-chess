@@ -1,0 +1,44 @@
+{{/*
+  The page frame: the built-in layout with the board's stylesheet added.
+*/}}
+{{define "head"}}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{if .Title}}{{.Title}} · {{end}}{{.Site}}</title>
+<link rel="stylesheet" href="{{.Base}}/static/style.css">
+<link rel="stylesheet" href="{{.Base}}/static/chess.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap bar">
+    <a class="brand" href="{{.Base}}/">{{.Site}}</a>
+    <nav class="main-nav" aria-label="Main">
+      {{range .Nav}}<a href="{{.URL}}"{{if .Active}} class="active"{{end}}>{{.Label}}</a>{{end}}
+    </nav>
+    <div class="account">
+      {{if .P}}
+        <a href="{{.Base}}/me">{{.P.Name}}</a>
+        <form method="post" action="{{.Base}}/logout" class="inline">
+          <input type="hidden" name="_csrf" value="{{.CSRF}}">
+          <button class="link" type="submit">Sign out</button>
+        </form>
+      {{else}}
+        <a href="{{.Base}}/login">Sign in</a>
+        {{if .Signup}}<a class="btn small" href="{{.Base}}/signup">Join free</a>{{end}}
+      {{end}}
+    </div>
+  </div>
+</header>
+<main class="wrap">
+{{end}}
+{{define "foot"}}
+</main>
+<footer class="wrap foot">
+  <span>{{.Site}} — a demonstration of the <a href="https://github.com/timeofmind/data-driven-framework-go">data-driven framework</a></span>
+  <a href="{{.Base}}/uml">Diagrams</a>
+  <a href="{{.Base}}/api/v1/openapi.json">API</a>
+</footer>
+</body>
+</html>{{end}}

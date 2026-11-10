@@ -1,0 +1,14 @@
+# Chess — a demonstration app for the data-driven framework, read by the datadriven
+# Caddy handler. The data: model/*.yaml. The interface: pages/*.yaml. Look: theme/.
+name: "Chess"
+tagline: "A game of chess described by its data model: two players, a board, and the rules of the pieces."
+model: [model/*.yaml]
+pages: [pages/*.yaml]
+theme: theme
+timezone: America/Vancouver
+
+signup:
+  enabled: true
+  intro: "Sign up, start a game against another player, and drag your pieces."
+
+nav: [games, new-game]

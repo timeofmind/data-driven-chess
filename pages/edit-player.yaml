@@ -1,0 +1,9 @@
+path: /players/{id}/edit
+title: "Edit {record.name}"
+record: {class: Player, id: id}
+interface_views:
+  - type: form
+    edits: record
+    fields: [name, email, password_hash]
+    then: {page: player, id: record.id}
+    cancel: {page: player, id: record.id}

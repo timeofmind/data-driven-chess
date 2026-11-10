@@ -1,0 +1,47 @@
+path: /games/{id}
+title: "{record._title}"
+record: {class: Game, id: id}
+default_for: Game
+interface_views:
+  - type: detail
+    fields: [white_id, black_id, turn, status, winner, move_count, last_move]
+    actions: [{delete: {then: {page: games}}}]
+  - type: grid
+    name: board
+    title: Board
+    intro: "{if(record.status == 'finished', 'The game is over: ' + record.winner + ' took the king.', record.turn + ' to move. Drag one of your pieces to a square; the rules of the piece decide.')}"
+    columns: [a, b, c, d, e, f, g, h]
+    rows: [8, 7, 6, 5, 4, 3, 2, 1]
+    live: 4
+    show:
+      - class: Piece
+        label: Pieces
+        where: "game_id == record.id and captured == false"
+        at: square
+        text: "{glyph}"
+        colour_by: colour
+        drag: true
+        link: {page: game, id: record.id}
+  - type: text
+    name: pgn
+    title: Moves
+    text: "{if(record.pgn == null, 'No move yet.', record.pgn)}"
+  - type: list
+    name: moves
+    data: {class: Move, where: "game_id == record.id", order: "number asc"}
+    fields: [number, colour, piece, from_square, to_square, san]
+    page_size: 200
+    empty: "No move yet."
+  - type: list
+    title: Taken
+    data: {class: Piece, where: "game_id == record.id and captured == true", order: "id asc"}
+    fields: [colour, kind]
+    empty: "No piece has been taken yet."
+  - type: text
+    title: How this works
+    items:
+      - "Each piece is a record with a square. Dragging it writes that square — nothing else."
+      - "The model's checks accept or refuse the move: whose turn it is, how that kind of piece moves, whether the way is clear (a count of the pieces between), what stands on the square."
+      - "Triggers do the rest: the turn passes and the PGN grows, the move is recorded, the taken piece leaves the board; a pawn on the last rank becomes a queen. Taking the king ends the game."
+      - "The game lives in memory on every node, fed by the change log — nothing of it is written to a database. The players are."
+      - "Not described, as this is a demonstration: castling, en passant, check and checkmate."

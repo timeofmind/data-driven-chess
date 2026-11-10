@@ -1,0 +1,13 @@
+path: /players/{id}
+title: "{record.name}"
+record: {class: Player, id: id}
+default_for: Player
+interface_views:
+  - type: detail
+    fields: [name]
+    actions: [{edit: {page: edit-player}}]
+  - type: list
+    title: Games
+    data: {class: Game, where: "white_id == record.id or black_id == record.id", order: "id desc"}
+    fields: [white_id, black_id, status, turn, move_count]
+    empty: "No games yet."

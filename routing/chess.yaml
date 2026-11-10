@@ -1,0 +1,12 @@
+# Where the data lives. Players (and the framework's sessions) are in a SQLite
+# database the nodes share; games and pieces are held in memory only — every
+# node keeps its own copy, fed by the change log, which is kept whole and
+# replayed at start. Nothing of a game is ever written to a database.
+listeners:
+  db:    {type: sqlite, dsn_env: CHESS_DB}
+  board: {type: memory}
+routes:
+  default: {source: db, flows_to: [db]}
+  Game:    {source: board, flows_to: [board]}
+  Piece:   {source: board, flows_to: [board]}
+  Move:    {source: board, flows_to: [board]}

@@ -1,0 +1,49 @@
+# Chess — Caddy (with the datadriven handler) behind nginx, which terminates TLS and
+# proxies https://holmgren.ca/chess to two nodes on this host. The app is mounted
+# below /chess (the handler's base path), so nginx passes the path through unchanged.
+# Players live in a SQLite database the nodes share; games and pieces are held in
+# memory on every node (routing/chess.yaml), replicated through the cluster.
+#
+# Environment:
+#   CHESS_APP          this repository's checkout (app.yaml, model/, pages/, routing/, theme/)
+#   CHESS_DB           the SQLite database file (players, sessions)
+#   CHESS_DATA         writable directory: change logs under changelog/<node>
+#   CHESS_BIND         listen address, default 127.0.0.1
+#   CHESS_PORT         listen port, default 8110
+#   CHESS_NODE         this node's name in the cluster (n1, n2), default n1
+#   CHESS_CLUSTER_PORT the port the node talks to the other on (9111, 9112)
+#   CHESS_ADMINS       admin logins (emails), space-separated; may be empty
+#   CHESS_TOKEN_KEY    file holding the key that signs fetch tokens (the same on every node)
+#   CHESS_BASE_URL     the public URL, default https://holmgren.ca/chess
+{
+	admin off
+	auto_https off
+	servers {
+		trusted_proxies static 127.0.0.1/32 ::1/128
+		client_ip_headers X-Forwarded-For
+	}
+}
+
+http://:{$CHESS_PORT:8110} {
+	bind {$CHESS_BIND:127.0.0.1}
+	encode zstd gzip
+	datadriven {
+		app            {$CHESS_APP}
+		base_path      /chess
+		database       sqlite {$CHESS_DB}
+		admins         {$CHESS_ADMINS}
+		token_key_file {$CHESS_TOKEN_KEY}
+		change_log     {$CHESS_DATA}/changelog/{$CHESS_NODE:n1}
+		base_url       {$CHESS_BASE_URL:https://holmgren.ca/chess}
+		uml            /uml
+		cluster {
+			self     {$CHESS_NODE:n1}
+			listen   127.0.0.1:{$CHESS_CLUSTER_PORT:9111}
+			node     n1 127.0.0.1:9111
+			node     n2 127.0.0.1:9112
+			certs    /etc/chess/cluster
+			replicas 2
+		}
+	}
+	respond 404
+}

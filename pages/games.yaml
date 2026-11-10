@@ -1,0 +1,10 @@
+path: /games
+title: Games
+interface_views:
+  - type: list
+    data: {class: Game, order: "id desc"}
+    fields: [white_id, black_id, status, turn, move_count, last_move]
+    filters: [{field: status}]
+    page_size: 25
+    add: {page: new-game, label: "Start a game"}
+    empty: "No games yet. Start one."

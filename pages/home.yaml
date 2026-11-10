@@ -1,0 +1,16 @@
+path: /
+title: Home
+label: Home
+interface_views:
+  - type: text
+    style: hero
+    title: "Chess, from a data model"
+    text: "Two players, a board of a–h by 8–1, and the rules of the pieces — all written as data, run by the data-driven framework. The framework draws the board as an interactive grid and knows nothing of chess: the model says which square a piece is on, whose it is, and what a legal move is."
+    links:
+      - {page: new-game, label: "Start a game", when: "viewer != null"}
+      - {page: games, label: "Games"}
+  - type: list
+    title: Latest games
+    data: {class: Game, order: "id desc", limit: 10}
+    fields: [white_id, black_id, status, turn, move_count]
+    empty: "No games yet."

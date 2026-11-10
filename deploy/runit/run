@@ -1,0 +1,18 @@
+#!/bin/sh
+# runit service: Chess, one node of two (Caddy + datadriven handler), behind nginx.
+# install.sh writes one copy per node with CHESS_NODE, CHESS_PORT and CHESS_CLUSTER_PORT set.
+exec 2>&1
+export CHESS_NODE=${CHESS_NODE:-n1}
+export CHESS_PORT=${CHESS_PORT:-8110}
+export CHESS_CLUSTER_PORT=${CHESS_CLUSTER_PORT:-9111}
+export CHESS_APP=/etc/chess/app
+export CHESS_DB=/var/lib/chess/players.db
+export CHESS_DATA=/var/lib/chess
+export CHESS_TOKEN_KEY=/etc/chess/token.key
+export CHESS_BIND=127.0.0.1
+# Admins: login emails, space-separated, in a server-only file (not in this repository).
+export CHESS_ADMINS="$(cat /etc/chess/admins 2>/dev/null)"
+export HOME=/var/lib/chess
+export XDG_DATA_HOME=/var/lib/chess/caddy/$CHESS_NODE
+export XDG_CONFIG_HOME=/var/lib/chess/caddy/$CHESS_NODE
+exec chpst -u chess:chess /usr/local/bin/caddy-chess run --config /etc/chess/Caddyfile --adapter caddyfile

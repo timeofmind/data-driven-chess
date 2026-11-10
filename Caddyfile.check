@@ -1,0 +1,21 @@
+# Used by `make check`: one node, no cluster, to check that the whole app loads in the
+# handler. The real server is Caddyfile.
+{
+	admin off
+	auto_https off
+}
+
+http://:{$CHESS_PORT:8110} {
+	bind {$CHESS_BIND:127.0.0.1}
+	datadriven {
+		app            {$CHESS_APP}
+		base_path      /chess
+		database       sqlite {$CHESS_DB}
+		admins         {$CHESS_ADMINS}
+		token_key_file {$CHESS_TOKEN_KEY}
+		change_log     {$CHESS_DATA}/changelog/{$CHESS_NODE:n1}
+		base_url       {$CHESS_BASE_URL:https://holmgren.ca/chess}
+		uml            /uml
+	}
+	respond 404
+}
