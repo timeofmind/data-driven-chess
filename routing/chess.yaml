@@ -16,6 +16,5 @@ routes:
   Game:    {source: board, flows_to: [board]}
   Piece:   {source: board, flows_to: [board]}
   Move:    {source: board, flows_to: [board]}
-  # Verdicts belong to a game, so they live where the games do (a verdicts
-  # table in SQLite would carry a foreign key to an empty games table).
+  # Verdicts belong to a game, so they live where the games do.
   Verdict: {source: board, flows_to: [board]}
