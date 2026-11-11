@@ -17,14 +17,20 @@ listed under the board. A pawn that reaches the far rank becomes a queen.
 go to show a dot, and the opponent's pieces it could take show a ring. Lift your king
 and the squares the other side attacks turn red. When a king stands under attack, the
 board says *White is in check* or *Black is in check* and marks its square. The board
-won't let you drop a king on a red square. Everything else is a hint: the move is
-still the model's to accept or refuse, and the server never hears about the hints.
+won't let you drop a king on a red square, and the model refuses the move if it is
+made some other way. Everything else is a hint: the move is the model's to accept or
+refuse, and the server never hears about the hints.
 
 **Turns.** After an accepted move the turn passes to the other side. The board
 refreshes itself every few seconds, so you see your opponent's move without reloading.
 
+**The king.** A king may not move onto a square the other side attacks: the move is
+refused with *the king can't move into check*, whichever way it is made. The board
+shows those squares in red before you drop. The game does not yet make you move
+*out* of check, so a king left under attack can be taken.
+
 **Winning.** The game ends when a king is taken; the board says who won. There is no
-check or checkmate, no castling and no en passant — this is a demonstration of the
+checkmate, no castling and no en passant — this is a demonstration of the
 framework's interactive grid, not a tournament engine.
 
 **Your games.** Your name at the top opens your page, with every game you are in.
@@ -43,8 +49,13 @@ The hints when you lift a piece are the one piece of code in the app:
 `theme/static/chess.js`, a short script on the framework's client library. It reads
 the pieces the board already shows, works out reach and attack in the browser, and
 colours squares and refuses a king's drop on an attacked square. It cannot write
-anything and the model never relies on it — the model itself does not yet know what
-an attacked square is, so a king moved into check through the API, or by a page
-without the script, is accepted. Check and mate as *facts of the game* are the
-model's job, with the attacked squares recorded as data; the script is the viewer's
-convenience, done where the pieces already are.
+anything and the model never relies on it: the model knows what an attacked square is
+on its own, without a search. After every move a trigger stores, on every piece, how
+many pieces stand on each of the eight rays from its square (the enemy king left out,
+so the square it leaves blocks nothing); a king arriving on a square works out the
+same eight for that square as it is saved; an enemy slider on a line with the king
+attacks it exactly when its count along that line equals the king's — nothing between
+them — and knights, pawns and the other king attack by geometry alone. That is one
+check, `attackers.count == 0`, over a relationship whose `where` compares those
+counts. The script is the viewer's convenience, done where the pieces already are;
+the rule is the model's.

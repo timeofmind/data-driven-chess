@@ -22,7 +22,7 @@ nothing more. Everything chess-like is in the model:
   (`via: victims`), a pawn on the last rank becomes a queen (`via: me`), the turn passes
   and taking the king ends the game (`via: game_id`).
 
-Not described, as this is a demonstration: castling, en passant, check and checkmate.
+Not described, as this is a demonstration: castling, en passant, checkmate and moving out of check.
 See `docs/how-chess-works.md` for the player's view.
 
 **Nothing of a game is written to a database.** `routing/chess.yaml` keeps games and

@@ -6,8 +6,16 @@
 # victims); triggers capture what was on the square, promote a pawn and hand the
 # turn to the other side.
 #
-# Not described (a demonstration): castling, en passant, check and checkmate —
-# a game ends when a king is taken.
+# A king may not move into check. "Attacked" is a comparison, not a search:
+# every piece stores, after each move, how many pieces stand on each of its
+# eight rays (ray_* counts, the enemy king left out so the square it leaves is
+# clear); a king arriving on a square computes the same eight for that square
+# (on_change reads kray_*.count); an enemy slider on a line with the king
+# attacks it when its count along that line equals the king's, that is, nothing
+# stands between. Knights, pawns and the other king attack by geometry alone.
+#
+# Not described (a demonstration): castling, en passant, checkmate, and
+# moving out of check — a game ends when a king is taken.
 enums:
   Colour: {values: [white, black]}
   Kind: {values: [king, queen, rook, bishop, knight, pawn]}
@@ -88,6 +96,17 @@ classes:
       - {name: from_file, type: integer}
       - {name: from_rank, type: integer}
       - {name: promoting, type: boolean, default: false}
+      - {name: moving, type: boolean, default: false, description: "True while the piece's own move is being checked and its triggers run"}
+      # Pieces on the closed ray from this piece's square in each direction
+      # (itself and the enemy king left out), refreshed after every move.
+      - {name: n_n, type: integer, default: 0}
+      - {name: n_s, type: integer, default: 0}
+      - {name: n_e, type: integer, default: 0}
+      - {name: n_w, type: integer, default: 0}
+      - {name: n_ne, type: integer, default: 0}
+      - {name: n_nw, type: integer, default: 0}
+      - {name: n_se, type: integer, default: 0}
+      - {name: n_sw, type: integer, default: 0}
     computed:
       # The move's notation, read while the trigger records it (the victims still there).
       - {name: san, expr: "if(kind == 'pawn' or promoting, if(victims.count > 0, substr('abcdefgh', from_file - 1, 1) + 'x', ''), if(kind == 'king', 'K', if(kind == 'queen', 'Q', if(kind == 'rook', 'R', if(kind == 'bishop', 'B', 'N')))) + if(victims.count > 0, 'x', '')) + square + if(promoting, '=Q', '')"}
@@ -101,6 +120,32 @@ classes:
         - {target: Piece, name: victims, match: {game_id: game_id, square: square}, where: "id != self.id and captured == false and colour != self.colour"}
         - {target: Piece, name: own_here, match: {game_id: game_id, square: square}, where: "id != self.id and captured == false and colour == self.colour"}
         - {target: Piece, name: king_victims, match: {game_id: game_id, square: square}, where: "id != self.id and captured == false and colour != self.colour and kind == 'king'"}
+        # Every piece of the game, this one included: the trigger refreshes their counts.
+        - {target: Piece, name: all_pieces, match: {game_id: game_id}}
+        # The eight rays from this piece's square, inclusive, for the stored counts
+        # (the enemy king left out: the square it leaves must not block a line).
+        - {target: Piece, name: ray_n, match: {game_id: game_id}, where: "id != self.id and captured == false and (kind != 'king' or colour == self.colour) and file == self.file and rank >= self.rank"}
+        - {target: Piece, name: ray_s, match: {game_id: game_id}, where: "id != self.id and captured == false and (kind != 'king' or colour == self.colour) and file == self.file and rank <= self.rank"}
+        - {target: Piece, name: ray_e, match: {game_id: game_id}, where: "id != self.id and captured == false and (kind != 'king' or colour == self.colour) and rank == self.rank and file >= self.file"}
+        - {target: Piece, name: ray_w, match: {game_id: game_id}, where: "id != self.id and captured == false and (kind != 'king' or colour == self.colour) and rank == self.rank and file <= self.file"}
+        - {target: Piece, name: ray_ne, match: {game_id: game_id}, where: "id != self.id and captured == false and (kind != 'king' or colour == self.colour) and diag_a == self.diag_a and file >= self.file"}
+        - {target: Piece, name: ray_sw, match: {game_id: game_id}, where: "id != self.id and captured == false and (kind != 'king' or colour == self.colour) and diag_a == self.diag_a and file <= self.file"}
+        - {target: Piece, name: ray_nw, match: {game_id: game_id}, where: "id != self.id and captured == false and (kind != 'king' or colour == self.colour) and diag_b == self.diag_b and file <= self.file"}
+        - {target: Piece, name: ray_se, match: {game_id: game_id}, where: "id != self.id and captured == false and (kind != 'king' or colour == self.colour) and diag_b == self.diag_b and file >= self.file"}
+        # The same rays as a king arriving on a square sees them (the enemy king
+        # stands in the way like any piece; this king itself is left out by id).
+        - {target: Piece, name: kray_n, match: {game_id: game_id}, where: "id != self.id and captured == false and file == self.file and rank >= self.rank"}
+        - {target: Piece, name: kray_s, match: {game_id: game_id}, where: "id != self.id and captured == false and file == self.file and rank <= self.rank"}
+        - {target: Piece, name: kray_e, match: {game_id: game_id}, where: "id != self.id and captured == false and rank == self.rank and file >= self.file"}
+        - {target: Piece, name: kray_w, match: {game_id: game_id}, where: "id != self.id and captured == false and rank == self.rank and file <= self.file"}
+        - {target: Piece, name: kray_ne, match: {game_id: game_id}, where: "id != self.id and captured == false and diag_a == self.diag_a and file >= self.file"}
+        - {target: Piece, name: kray_sw, match: {game_id: game_id}, where: "id != self.id and captured == false and diag_a == self.diag_a and file <= self.file"}
+        - {target: Piece, name: kray_nw, match: {game_id: game_id}, where: "id != self.id and captured == false and diag_b == self.diag_b and file <= self.file"}
+        - {target: Piece, name: kray_se, match: {game_id: game_id}, where: "id != self.id and captured == false and diag_b == self.diag_b and file >= self.file"}
+        # The enemy pieces that attack this piece's square, by geometry and, for a
+        # slider, a clear line: its count along the line equals this piece's.
+        - {target: Piece, name: attackers, match: {game_id: game_id},
+           where: "id != self.id and captured == false and colour != self.colour and ((kind == 'knight' and (((file == self.file + 1 or file == self.file - 1) and (rank == self.rank + 2 or rank == self.rank - 2)) or ((file == self.file + 2 or file == self.file - 2) and (rank == self.rank + 1 or rank == self.rank - 1)))) or (kind == 'pawn' and (file == self.file + 1 or file == self.file - 1) and ((colour == 'white' and rank == self.rank - 1) or (colour == 'black' and rank == self.rank + 1))) or (kind == 'king' and file <= self.file + 1 and file >= self.file - 1 and rank <= self.rank + 1 and rank >= self.rank - 1) or ((kind == 'rook' or kind == 'queen') and ((rank == self.rank and ((file < self.file and n_e == self.n_e) or (file > self.file and n_w == self.n_w))) or (file == self.file and ((rank < self.rank and n_n == self.n_n) or (rank > self.rank and n_s == self.n_s))))) or ((kind == 'bishop' or kind == 'queen') and ((diag_a == self.diag_a and ((file < self.file and n_ne == self.n_ne) or (file > self.file and n_sw == self.n_sw))) or (diag_b == self.diag_b and ((file > self.file and n_nw == self.n_nw) or (file < self.file and n_se == self.n_se))))))"}
         # Pieces on the line of the last move, strictly between its squares.
         - {target: Piece, name: blockers, match: {game_id: game_id},
            where: "id != self.id and captured == false and file >= min(self.file, self.from_file) and file <= max(self.file, self.from_file) and rank >= min(self.rank, self.from_rank) and rank <= max(self.rank, self.from_rank) and (file != self.file or rank != self.rank) and ((rank == self.rank and self.rank == self.from_rank) or (file == self.file and self.file == self.from_file) or (diag_a == self.diag_a and self.file - self.rank == self.from_file - self.from_rank) or (diag_b == self.diag_b and self.file + self.rank == self.from_file + self.from_rank))"}
@@ -116,23 +161,31 @@ classes:
           # A pawn reaching the last rank becomes a queen (the move is still checked as a pawn's).
           promoting: "old.kind == 'pawn' and (substr(square, 1, 1) == '8' or substr(square, 1, 1) == '1')"
           kind: "if(kind == 'pawn' and (substr(square, 1, 1) == '8' or substr(square, 1, 1) == '1'), 'queen', kind)"
+          moving: "true"
+      # The rays from the square it arrives on, as the attack check reads them
+      # (counts over the new square; the trigger stores the ordinary ones after).
+      - slot: square
+        set: {n_n: kray_n.count, n_s: kray_s.count, n_e: kray_e.count, n_w: kray_w.count, n_ne: kray_ne.count, n_nw: kray_nw.count, n_se: kray_se.count, n_sw: kray_sw.count}
     checks:
-      - {check: "captured or from_file == null or game.status == 'playing'", message: "the game is over", slot: square}
-      - {check: "captured or from_file == null or colour == game.turn", message: "it's not your turn", slot: square}
-      - {check: "captured or from_file == null or own_here.count == 0", message: "one of your own pieces is there", slot: square}
-      - {check: "captured or from_file == null or kind != 'king' or max(abs(file - from_file), abs(rank - from_rank)) == 1", message: "a king moves one square", slot: square}
-      - {check: "captured or from_file == null or kind != 'queen' or promoting or ((abs(file - from_file) == abs(rank - from_rank) or file == from_file or rank == from_rank) and blockers.count == 0)", message: "a queen moves along a line, over empty squares", slot: square}
-      - {check: "captured or from_file == null or kind != 'rook' or ((file == from_file or rank == from_rank) and blockers.count == 0)", message: "a rook moves along a rank or file, over empty squares", slot: square}
-      - {check: "captured or from_file == null or kind != 'bishop' or (abs(file - from_file) == abs(rank - from_rank) and blockers.count == 0)", message: "a bishop moves along a diagonal, over empty squares", slot: square}
-      - {check: "captured or from_file == null or kind != 'knight' or abs(file - from_file) * abs(rank - from_rank) == 2", message: "a knight moves two squares one way and one the other", slot: square}
-      - {check: "captured or from_file == null or (kind != 'pawn' and not promoting) or (file == from_file and rank - from_rank == if(colour == 'white', 1, -1) and victims.count == 0) or (file == from_file and rank - from_rank == if(colour == 'white', 2, -2) and from_rank == if(colour == 'white', 2, 7) and victims.count == 0 and blockers.count == 0) or (abs(file - from_file) == 1 and rank - from_rank == if(colour == 'white', 1, -1) and victims.count == 1)", message: "a pawn moves one square forward (two from its first rank) and captures diagonally", slot: square}
+      - {check: "captured or not moving or game.status == 'playing'", message: "the game is over", slot: square}
+      - {check: "captured or not moving or colour == game.turn", message: "it's not your turn", slot: square}
+      - {check: "captured or not moving or own_here.count == 0", message: "one of your own pieces is there", slot: square}
+      - {check: "captured or not moving or kind != 'king' or max(abs(file - from_file), abs(rank - from_rank)) == 1", message: "a king moves one square", slot: square}
+      - {check: "captured or not moving or kind != 'king' or attackers.count == 0", message: "the king can't move into check", slot: square}
+      - {check: "captured or not moving or kind != 'queen' or promoting or ((abs(file - from_file) == abs(rank - from_rank) or file == from_file or rank == from_rank) and blockers.count == 0)", message: "a queen moves along a line, over empty squares", slot: square}
+      - {check: "captured or not moving or kind != 'rook' or ((file == from_file or rank == from_rank) and blockers.count == 0)", message: "a rook moves along a rank or file, over empty squares", slot: square}
+      - {check: "captured or not moving or kind != 'bishop' or (abs(file - from_file) == abs(rank - from_rank) and blockers.count == 0)", message: "a bishop moves along a diagonal, over empty squares", slot: square}
+      - {check: "captured or not moving or kind != 'knight' or abs(file - from_file) * abs(rank - from_rank) == 2", message: "a knight moves two squares one way and one the other", slot: square}
+      - {check: "captured or not moving or (kind != 'pawn' and not promoting) or (file == from_file and rank - from_rank == if(colour == 'white', 1, -1) and victims.count == 0) or (file == from_file and rank - from_rank == if(colour == 'white', 2, -2) and from_rank == if(colour == 'white', 2, 7) and victims.count == 0 and blockers.count == 0) or (abs(file - from_file) == 1 and rank - from_rank == if(colour == 'white', 1, -1) and victims.count == 1)", message: "a pawn moves one square forward (two from its first rank) and captures diagonally", slot: square}
     triggers:
-      # Each fires for a piece that has moved (from_file is set by its first
-      # move), in this order: the game, the move's record, then the capture.
+      # Each fires for a piece making its own move (moving, set as its square
+      # changes), in this order: the game, the move's record, the capture, then
+      # every piece's counts — which clears moving, so a piece saved by that
+      # trigger fires none of these.
       # The game: whose turn it is follows from the mover's colour (so a
       # repeated save changes nothing); the PGN grows; taking the king ends it.
       - via: game_id
-        if: "not self.captured and self.from_file != null"
+        if: "self.moving and not self.captured"
         set:
           turn: "if(self.colour == 'white', 'black', 'white')"
           move_count: "if(target.last_piece_id == self.id and target.last_square == self.square, target.move_count, target.move_count + 1)"
@@ -144,7 +197,7 @@ classes:
           winner: "if(self.king_victims.count > 0, self.colour, target.winner)"
       # The move, recorded.
       - create: Move
-        if: "not self.captured and self.from_file != null"
+        if: "self.moving and not self.captured"
         set:
           game_id: self.game_id
           number: self.game.move_count
@@ -155,7 +208,12 @@ classes:
           captured: "if(self.victims.count > 0, true, false)"
           san: self.san
       # What was on the square is taken (after the game has seen it).
-      - {via: victims, if: "not self.captured and self.from_file != null", set: {captured: "true", square: "null"}}
+      - {via: victims, if: "self.moving and not self.captured", set: {captured: "true", square: "null"}}
+      # Last, with the capture done: every piece's ray counts for the position as
+      # it now stands, and nothing is moving any more (so none of this runs again).
+      - via: all_pieces
+        if: "self.moving and not self.captured"
+        set: {n_n: target.ray_n.count, n_s: target.ray_s.count, n_e: target.ray_e.count, n_w: target.ray_w.count, n_ne: target.ray_ne.count, n_nw: target.ray_nw.count, n_se: target.ray_se.count, n_sw: target.ray_sw.count, moving: "false"}
   Move:
     description: "One move of a game, in the order played"
     access: {parent: game_id}
