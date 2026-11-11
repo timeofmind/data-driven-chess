@@ -129,11 +129,16 @@
   // from our own moves (the server's stamp against when we posted — to half
   // a round trip). Below zero the face reads 0:00 and is flagged; the server
   // refuses the move itself, so this only says what it will say.
+  // The game's record (turn, status, the clocks), read once through the API
+  // and kept up to date by the pushes; record is for everyone, game only
+  // while there is a clock.
+  var record = null, apiBase = "";
   function clocks(board) {
     var m = location.pathname.match(/\/games\/(\d+)/);
     if (!m) return;
     var script = document.querySelector('script[src$="/static/chess.js"]');
-    var api = (script ? script.getAttribute("src").replace(/\/static\/chess\.js$/, "") : "") + "/api/v1/games/" + m[1];
+    apiBase = (script ? script.getAttribute("src").replace(/\/static\/chess\.js$/, "") : "") + "/api/v1";
+    var api = apiBase + "/games/" + m[1];
     var el = document.createElement("div");
     el.className = "chess-clocks";
     el.hidden = true;
@@ -157,6 +162,7 @@
         return r.json();
       }).then(function (j) {
         var g = j && j.data ? j.data : j;
+        record = g || record;
         if (!g || g.initial_ms == null) { el.hidden = true; game = null; return; }
         // Our own move: the server stamped it between our posting it and its answer.
         if (posted && game && g.last_move_ms && g.last_move_ms !== game.last_move_ms) {
@@ -203,6 +209,10 @@
     var lastSeen = 0; // the last move's stamp we have seen
     document.addEventListener("dd:push", function (e) {
       var n = e.detail;
+      if (n.class === "Game" && record && n.id == record.id && n.fields) {
+        Object.keys(n.fields).forEach(function (k) { record[k] = n.fields[k]; });
+        if (n.fields.turn || n.fields.status) setTimeout(checks, 0); // the turn or the end: say what the board shows
+      }
       if (!game || n.class !== "Game" || n.id != game.id || !n.fields) return;
       Object.keys(n.fields).forEach(function (k) { game[k] = n.fields[k]; });
       if (posted && n.fields.last_move_ms && n.fields.last_move_ms !== lastSeen) {
@@ -238,10 +248,32 @@
     // otherwise stalemate. The model never declares these (it only refuses
     // every move); the board says so. The redraw resets cell classes, so
     // this runs after every change.
+    // toMove: whose move it is — from the board's intro, redrawn with the
+    // board (the record may lag a push behind), else from the record.
     function toMove() {
       var m = (board.el.querySelector(".muted") || {}).textContent || "";
       m = m.toLowerCase();
-      return m.indexOf("black to move") === 0 ? "black" : m.indexOf("white to move") === 0 ? "white" : null;
+      if (m.indexOf("black to move") === 0) return "black";
+      if (m.indexOf("white to move") === 0) return "white";
+      return record && record.turn ? record.turn : null;
+    }
+    // report sends the board's verdict to the server, once, from a player's
+    // browser (one that may move something): a game played from one browser
+    // ends on it, a remote game once both players' boards agree.
+    var reported = false;
+    function report(result, endedBy) {
+      if (reported || !board.canMove() || !apiBase || (record && record.status !== "playing")) return;
+      var m = location.pathname.match(/\/games\/(\d+)/);
+      if (!m) return;
+      reported = true;
+      fetch(apiBase + "/me", { credentials: "same-origin", headers: { "Accept": "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (me) {
+          if (!me || !me.authenticated) return;
+          return fetch(apiBase + "/verdicts", { method: "POST", credentials: "same-origin",
+            headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": me.csrf_token },
+            body: JSON.stringify({ game_id: m[1], player_id: String(me.id), result: result, ended_by: endedBy }) });
+        }).catch(function (e) { console.error("verdict", e); });
     }
     function checks() {
       var pos = position(board), said = [], over = false, turn = toMove();
@@ -255,6 +287,7 @@
         if (colour === turn && k && !hasLegalMove(colour, pos)) {
           said.push(inCheck ? "Checkmate: " + name + " has no move. " + (colour === "white" ? "Black" : "White") + " wins." : "Stalemate: " + name + " has no move. A draw.");
           over = true;
+          report(inCheck ? (colour === "white" ? "black_wins" : "white_wins") : "draw", inCheck ? "checkmate" : "stalemate");
         } else if (inCheck) {
           said.push(name + " is in check.");
         }

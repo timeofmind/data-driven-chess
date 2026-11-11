@@ -72,8 +72,14 @@ message says what castling needs. The PGN writes O-O or O-O-O.
 **Winning.** When the side to move is in check and has no move that ends it, the board
 declares checkmate and names the winner; with no move but not in check, stalemate. The
 board works this out from the pieces it shows, the same way the server judges each
-move; the server itself only refuses every move, so the game record stays open — it is
-finished, for the record, when a king is taken.
+move, and reports it to the server as its verdict. A game played from one browser ends
+on that report; a remote game ends once both players' boards have reported the same.
+The game then shows its result and how it ended, the PGN its score, and no more moves
+are accepted.
+
+**A draw.** *Offer a draw* under the board makes an offer the other player sees at once;
+they accept by offering the same, and the game is drawn. Open your offer in the list to
+withdraw it. From one browser, *Agree a draw* ends the game as a draw at once.
 
 **Your games.** Your name at the top opens your page, with every game you are in;
 *Challenges* lists those made to you, waiting, and your own with their state.
@@ -107,6 +113,11 @@ routing sends that record to the **mail listener** — the host's exim4 on port 
 which trusts localhost, so no credentials — with the `password-reset` template, a
 `MailTemplate` record in the database when there is one of that name, else the app's
 `mail/password-reset.yaml`; the *reset* page finds the account by the code.
+
+A game's end is a record too: a `Verdict` from a player (only a player of the game may
+make one per ending), with the result and how it ended — a draw offer is one too; a trigger on the game finishes it on
+one verdict for a game played from one browser, and for a remote game once the verdicts
+of that game agreeing with this one count two.
 
 The push is the framework's: a view that says `live: push` in the page file is
 followed by the page's event stream, and the server sends it every change — on any

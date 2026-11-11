@@ -1,0 +1,8 @@
+path: /verdicts/{id}
+title: "{record.player.name}: {record.ended_by}"
+record: {class: Verdict, id: id}
+default_for: Verdict
+interface_views:
+  - type: detail
+    fields: [game_id, player_id, result, ended_by, created_at]
+    actions: [{delete: {then: {page: game, id: record.game_id}}}]
