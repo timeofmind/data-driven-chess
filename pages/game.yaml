@@ -4,7 +4,7 @@ record: {class: Game, id: id}
 default_for: Game
 interface_views:
   - type: detail
-    fields: [white_id, black_id, turn, status, winner, move_count, last_move, created_at, white_ms, black_ms]
+    fields: [white_id, black_id, turn, check, status, winner, move_count, last_move, created_at, white_ms, black_ms]
     actions: [{delete: {then: {page: games}}}]
   - type: grid
     name: board

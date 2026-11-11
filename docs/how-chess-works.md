@@ -29,13 +29,23 @@ time each side has used. (The clock does not yet end a game; it only keeps the t
 **Turns.** After an accepted move the turn passes to the other side. The board
 refreshes itself every few seconds, so you see your opponent's move without reloading.
 
-**The king.** A king may not move onto a square the other side attacks: the move is
-refused with *the king can't move into check*, whichever way it is made. The board
-shows those squares in red before you drop. The game does not yet make you move
-*out* of check, so a king left under attack can be taken.
+**The king.** No move may leave your own king in check: a king can't step onto a
+square the other side attacks, a piece can't move off a line it shields the king on,
+and when you are in check the only moves accepted are those that end it — taking the
+attacker, blocking it or moving the king. Anything else is refused with *your king
+would be in check*, whichever way the move is made. The board shows attacked squares
+in red when you lift a king, and says *White is in check* or *Black is in check*; the
+game records it too (*In check: Yes*) and the move that gave it gets a + in the PGN.
 
-**Winning.** The game ends when a king is taken; the board says who won. There is no
-checkmate, no castling and no en passant — this is a demonstration of the
+**Castling.** Drag the king from its first square two files toward a rook: to g1 or
+c1 (g8 or c8 for black). The rook moves with it. The move is accepted only on the
+king's first move, with a rook that has never moved, over empty squares, and neither
+out of check nor across or onto an attacked square; otherwise it is refused and the
+message says what castling needs. The PGN writes O-O or O-O-O.
+
+**Winning.** The game ends when a king is taken; the board says who won. Checkmate is
+not yet declared (a side in check with no move to make is simply stuck), and there is
+no en passant — this is a demonstration of the
 framework's interactive grid, not a tournament engine.
 
 **Your games.** Your name at the top opens your page, with every game you are in.
@@ -57,11 +67,19 @@ The hints when you lift a piece are the one piece of code in the app:
 `theme/static/chess.js`, a short script on the framework's client library. It reads
 the pieces the board already shows, works out reach and attack in the browser, and
 colours squares and refuses a king's drop on an attacked square. It cannot write
-anything and the model never relies on it: the model knows what an attacked square is
-on its own, and stores nothing for it. One relationship on a piece lists the enemy
-pieces that attack its square: knights, pawns and the other king by geometry, and a
-slider when it is on a line with the square and *nothing stands between* — which is a
-second relationship, the pieces between the two, counted inside the first. So the rule
-is one check, `attackers.count == 0`, asked of the pieces as they are at the moment the
-king is dropped. The script is the viewer's convenience, done where the pieces already
-are; the rule is the model's.
+anything and the model never relies on it. The rule is one check on the moving piece:
+*after this move, no enemy piece attacks my king's square*. A check is a condition on
+the position the move would leave, so it covers moving into check, uncovering it and
+staying in it with one sentence. What makes it answerable is that the position after
+the move differs from the stored one in three ways, each said in the rule: the mover's
+old square is empty, its new square is occupied, and what stood there is taken. One
+relationship lists the enemy pieces that would attack the king's square (knights,
+pawns and the other king by geometry; a slider when nothing stands between — a second
+relationship counted inside the first). The game remembers where each king stands,
+and the mirror of the same relationship tells whether a move *gives* check. Nothing
+else is stored. Castling is the same vocabulary once more: each piece counts its own
+moves, the king's check allows the two-file step when the corner rook has none, the
+rank between is empty, the game is not in check and the crossed square is not
+attacked; a trigger on the king's move then places the rook, marked so that its own
+save changes no turn and records no move. The script is the viewer's convenience, done
+where the pieces already are; the rule is the model's.

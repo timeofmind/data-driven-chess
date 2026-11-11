@@ -5,8 +5,8 @@
 # Idempotent. Does NOT touch nginx.
 set -eu
 CADDY_MODULE=github.com/timeofmind/data-driven-framework-caddy2
-CADDY_VERSION=${CADDY_VERSION:-v0.23.0}
-FRAMEWORK_VERSION=${FRAMEWORK_VERSION:-v0.28.0}
+CADDY_VERSION=${CADDY_VERSION:-v0.23.1}
+FRAMEWORK_VERSION=${FRAMEWORK_VERSION:-v0.28.1}
 BUILD_USER=${BUILD_USER:-aaron}
 
 # 1. service user (no login, no home)
