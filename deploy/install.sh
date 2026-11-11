@@ -61,7 +61,8 @@ if [ -e /etc/service/chess ]; then sv down chess; rm -f /etc/service/chess; slee
 port=8110
 for n in n1 n2; do
   svc=chess-$n
-  if [ -e /etc/service/$svc ]; then sv restart $svc; else ln -s /etc/sv/$svc /etc/service/; fi
+  # force-restart: a node holding open event streams is killed after 7 s rather than left running
+  if [ -e /etc/service/$svc ]; then sv force-restart $svc; else ln -s /etc/sv/$svc /etc/service/; fi
   i=0; until curl -fsS -o /dev/null http://127.0.0.1:$port/chess/ 2>/dev/null || [ $i -ge 30 ]; do i=$((i+1)); sleep 1; done
   sv status $svc
   curl -fsS -o /dev/null -w "local check $n: HTTP %{http_code}\n" http://127.0.0.1:$port/chess/
