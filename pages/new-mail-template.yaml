@@ -1,0 +1,10 @@
+path: /mail-templates/new
+title: New mail template
+access: signed_in
+interface_views:
+  - type: form
+    creates: MailTemplate
+    intro: "Name it as the routing does (password-reset) to replace the app's default."
+    fields: [name, to, subject, body, vars]
+    then: {page: mail-template, id: saved.id}
+    cancel: {page: mail-templates}

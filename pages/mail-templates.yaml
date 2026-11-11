@@ -1,0 +1,10 @@
+path: /mail-templates
+title: Mail templates
+access: signed_in
+interface_views:
+  - type: list
+    intro: "The emails the app sends, by name. A template here replaces the app's default of the same name (mail/<name>.yaml); only an admin may change them."
+    data: {class: MailTemplate, order: "name asc"}
+    fields: [name, to, subject]
+    add: {page: new-mail-template, label: "New template"}
+    empty: "No template in the database: the app's defaults are used (password-reset)."

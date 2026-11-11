@@ -33,6 +33,12 @@ increment, every move is stamped as it reaches the server and its time comes off
 clock, and a move after the mover's time is up is refused. The clocks that tick above the board
 are the app's script, counting down from what the server last recorded.
 
+A forgotten password is reset by email: `app.yaml` names the `PasswordReset` class, the
+routing sends it to a mail listener (`routing/chess.yaml`: the local exim4, no
+authentication) with the `password-reset` template — a `MailTemplate` record if an admin
+made one at /mail-templates, else `mail/password-reset.yaml` — and the handler's /forgot
+and /reset pages do the rest (`model/30-mail.yaml`).
+
 Not described, as this is a demonstration: en passant, checkmate (a side in check with no move is stuck; the game ends when a king is taken), and a flag fall ending the game.
 See `docs/how-chess-works.md` for the player's view.
 
@@ -48,6 +54,7 @@ app.yaml        the manifest: name, model and page globs, theme, sign-up, nav
 model/          the data model (players; games and pieces, with the rules)
 routing/        where the data lives: players in SQLite, games and pieces in memory
 pages/          one file per page, with its interface views
+mail/           default mail templates (password-reset.yaml), replaced by MailTemplate records of the same name
 theme/          layout.html (adds chess.css and chess.js) and static/: chess.css (the board's look),
                 chess.js (move and attack hints on the framework's client library, dd.js)
 Caddyfile       one node of two, mounted below /chess

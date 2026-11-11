@@ -66,8 +66,9 @@ classes:
       - {name: status, label: "Status", expr: "if(withdrawn, 'withdrawn', coalesce(answer, 'open'))"}
     relationships:
       belongs_to:
-        - {target: Player, via: from_id, name: from, link: readable}
-        - {target: Player, via: to_id, name: to, link: readable}
+        # A player who leaves takes their challenges with them.
+        - {target: Player, via: from_id, name: from, link: readable, on_delete: cascade}
+        - {target: Player, via: to_id, name: to, link: readable, on_delete: cascade}
       has_many:
         - {target: Game, via: challenge_id, name: games}
     checks:

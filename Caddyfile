@@ -15,6 +15,7 @@
 #   CHESS_ADMINS       admin logins (emails), space-separated; may be empty
 #   CHESS_TOKEN_KEY    file holding the key that signs fetch tokens (the same on every node)
 #   CHESS_BASE_URL     the public URL, default https://holmgren.ca/chess
+#   CHESS_SMTP_HOST, CHESS_SMTP_PORT, CHESS_MAIL_FROM   outgoing mail (routing/chess.yaml): the local exim4, 127.0.0.1:25
 {
 	admin off
 	auto_https off

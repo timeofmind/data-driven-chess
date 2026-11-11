@@ -1,0 +1,10 @@
+path: /mail-templates/{id}/edit
+title: "Edit {record.name}"
+access: signed_in
+record: {class: MailTemplate, id: id}
+interface_views:
+  - type: form
+    edits: record
+    intro: "Go templates over .record (what is sent), the records it belongs to by name (.player) and .base_url."
+    fields: [name, to, subject, body, vars]
+    then: {page: mail-template, id: record.id}

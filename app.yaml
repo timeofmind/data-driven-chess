@@ -11,4 +11,8 @@ signup:
   enabled: true
   intro: "Sign up, challenge another player — or play yourself — and drag your pieces."
 
+# A forgotten password: /forgot emails a link (a PasswordReset record sent by the
+# mail listener), /reset?code=… sets the new one. See model/30-mail.yaml.
+password_reset: {class: PasswordReset, expires: 1h}
+
 nav: [games, challenges, new-game]

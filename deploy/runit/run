@@ -10,6 +10,10 @@ export CHESS_DB=/var/lib/chess/players.db
 export CHESS_DATA=/var/lib/chess
 export CHESS_TOKEN_KEY=/etc/chess/token.key
 export CHESS_BIND=127.0.0.1
+# Outgoing mail through the host's exim4 (trusts localhost: no authentication).
+export CHESS_SMTP_HOST=${CHESS_SMTP_HOST:-127.0.0.1}
+export CHESS_SMTP_PORT=${CHESS_SMTP_PORT:-25}
+export CHESS_MAIL_FROM=${CHESS_MAIL_FROM:-chess@holmgren.ca}
 # Admins: login emails, space-separated, in a server-only file (not in this repository).
 export CHESS_ADMINS="$(cat /etc/chess/admins 2>/dev/null)"
 export HOME=/var/lib/chess

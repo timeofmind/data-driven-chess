@@ -1,7 +1,14 @@
 # How Chess works — the player's view
 
 **Signing up.** Anyone can join with an email, a password and a name. Your name is
-what other players see.
+what other players see, and no two players share one.
+
+**A forgotten password.** *Forgot your password?* on the sign-in page asks for your
+email and sends you a link (the answer is the same whether or not the email has an
+account). The link opens a page naming the account, where you choose a new password;
+it is good for an hour and works once, and you are signed in as you set it. The
+message comes from the app through the host's own mail server; an admin can change
+its wording at */mail-templates*.
 
 **Challenging a player.** *Challenge a player* asks who you challenge, how you play,
 your colour and the time control. *Remote*: each of you moves from your own browser,
@@ -92,6 +99,13 @@ and black by the challenger's colour; in person, every piece belongs to white's
 account, so one browser moves both sides, while remotely each side's pieces belong to
 its own account and nothing else can move them. The challenges pages say `live: push`,
 so a challenge, an answer and the game arrive without a reload.
+
+The password reset is the handler's, configured in `app.yaml` (`password_reset`): the
+*forgot* page saves a `PasswordReset` record with a fresh code for the account, the
+routing sends that record to the **mail listener** — the host's exim4 on port 25,
+which trusts localhost, so no credentials — with the `password-reset` template, a
+`MailTemplate` record in the database when there is one of that name, else the app's
+`mail/password-reset.yaml`; the *reset* page finds the account by the code.
 
 The push is the framework's: a view that says `live: push` in the page file is
 followed by the page's event stream, and the server sends it every change — on any

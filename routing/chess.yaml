@@ -5,8 +5,14 @@
 listeners:
   db:    {type: sqlite, dsn_env: CHESS_DB}
   board: {type: memory}
+  # Outgoing mail: the host's own mail server (exim4 on localhost:25, which
+  # trusts localhost — no authentication, no TLS); templates are MailTemplate
+  # records by name, else mail/<name>.yaml in the app.
+  mail:  {type: smtp, host_env: CHESS_SMTP_HOST, port_env: CHESS_SMTP_PORT, starttls: off, from_env: CHESS_MAIL_FROM, base_url_env: CHESS_BASE_URL, template_class: MailTemplate, templates: mail}
 routes:
   default: {source: db, flows_to: [db]}
+  # A password reset is saved and sent (the leader sends; followers don't).
+  PasswordReset: {source: db, flows_to: [db, {listener: mail, template: password-reset}]}
   Game:    {source: board, flows_to: [board]}
   Piece:   {source: board, flows_to: [board]}
   Move:    {source: board, flows_to: [board]}
