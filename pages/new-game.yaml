@@ -4,9 +4,10 @@ access: signed_in
 interface_views:
   - type: form
     creates: Game
-    intro: "You play white. Choose who plays black — choose yourself to move both sides."
+    intro: "You play white. Choose who plays black — choose yourself to move both sides — and the time control."
     fields:
       - {field: black_id, help: "Your opponent"}
+      - {field: time_control, help: "The minutes each side starts with, and the seconds added to its clock at the start of each of its moves. The clock runs from the first move's arrival at the server; a move that arrives after the mover's time is up is refused."}
     submit: "Start"
     then: {page: game, id: saved.id}
     cancel: {page: games}

@@ -22,7 +22,12 @@ nothing more. Everything chess-like is in the model:
   (`via: victims`), a pawn on the last rank becomes a queen (`via: me`), the turn passes
   and taking the king ends the game (`via: game_id`).
 
-Not described, as this is a demonstration: en passant, and checkmate (a side in check with no move is stuck; the game ends when a king is taken).
+The clock is the model's too: the time control chosen when a game starts gives each side its time and
+increment, every move is stamped as it reaches the server and its time comes off the mover's
+clock, and a move after the mover's time is up is refused. The clocks that tick above the board
+are the app's script, counting down from what the server last recorded.
+
+Not described, as this is a demonstration: en passant, checkmate (a side in check with no move is stuck; the game ends when a king is taken), and a flag fall ending the game.
 See `docs/how-chess-works.md` for the player's view.
 
 **Nothing of a game is written to a database.** `routing/chess.yaml` keeps games and

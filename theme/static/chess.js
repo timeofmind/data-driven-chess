@@ -6,7 +6,10 @@
 // capture on (a ring), and for a king the squares the other side attacks
 // (red); after every redraw, whether a king is in check. A king is not
 // dropped on a red square: the drop is cancelled before anything is posted.
-// Nothing here is posted — the server never hears from this script.
+// And the clocks: two faces above the board counting down in the browser
+// from what the server last recorded (the game's record, read through the
+// API after every change of the board). Nothing here is posted — the server
+// never hears from this script.
 (function () {
   "use strict";
   var KIND = { "♔": "king", "♕": "queen", "♖": "rook", "♗": "bishop", "♘": "knight", "♙": "pawn",
@@ -91,6 +94,87 @@
     return k;
   }
 
+  // clocks: the game's record says what each side had left when it last
+  // moved (its starting time until then), when the last move arrived and
+  // whose move it is; the side to move counts down from that plus its
+  // increment, by the server's clock. The server's clock is ours plus an
+  // offset: from the Date header of the record's fetch (to the second), then
+  // from our own moves (the server's stamp against when we posted — to half
+  // a round trip). Below zero the face reads 0:00 and is flagged; the server
+  // refuses the move itself, so this only says what it will say.
+  function clocks(board) {
+    var m = location.pathname.match(/\/games\/(\d+)/);
+    if (!m) return;
+    var script = document.querySelector('script[src$="/static/chess.js"]');
+    var api = (script ? script.getAttribute("src").replace(/\/static\/chess\.js$/, "") : "") + "/api/v1/games/" + m[1];
+    var el = document.createElement("div");
+    el.className = "chess-clocks";
+    el.hidden = true;
+    var faces = {};
+    ["white", "black"].forEach(function (colour) {
+      var f = document.createElement("div");
+      f.className = "chess-clock " + colour;
+      f.innerHTML = '<span class="who">' + (colour === "white" ? "♔ White" : "♚ Black") + '</span> <span class="time"></span><span class="flag" hidden> ⚑ time is up</span>';
+      el.appendChild(f);
+      faces[colour] = f;
+    });
+    board.el.insertBefore(el, board.grid());
+    board.mark(el);
+    var game = null, offset = 0, posted = 0, exact = false;
+
+    function sync() {
+      var sent = Date.now();
+      return fetch(api, { credentials: "same-origin", headers: { "Accept": "application/json" } }).then(function (r) {
+        var got = Date.now(), d = Date.parse(r.headers.get("Date") || "");
+        if (!exact && d) offset = d + 500 - (sent + got) / 2;
+        return r.json();
+      }).then(function (j) {
+        var g = j && j.data ? j.data : j;
+        if (!g || g.initial_ms == null) { el.hidden = true; game = null; return; }
+        // Our own move: the server stamped it between our posting it and its answer.
+        if (posted && game && g.last_move_ms && g.last_move_ms !== game.last_move_ms) {
+          offset = g.last_move_ms - (posted + got) / 2;
+          exact = true;
+        }
+        posted = 0;
+        game = g;
+        el.hidden = false;
+        tick();
+      }).catch(function () {});
+    }
+    function fmt(ms) {
+      if (ms <= 0) return "0:00";
+      var s = Math.floor(ms / 1000), mn = Math.floor(s / 60), sec = s % 60;
+      var out = (mn >= 60 ? Math.floor(mn / 60) + ":" + (mn % 60 < 10 ? "0" : "") : "") + (mn >= 60 ? mn % 60 : mn) + ":" + (sec < 10 ? "0" : "") + sec;
+      if (ms < 10000) out += "." + Math.floor(ms % 1000 / 100);
+      return out;
+    }
+    function left(colour) {
+      var had = game[colour + "_ms"] == null ? game.initial_ms : game[colour + "_ms"];
+      if (game.status !== "playing" || game.turn !== colour) return had;
+      var since = game.last_move_ms || game.started_ms;
+      return had + (game.increment_ms || 0) - (Date.now() + offset - since);
+    }
+    function tick() {
+      if (!game) return;
+      ["white", "black"].forEach(function (colour) {
+        var ms = left(colour), f = faces[colour];
+        f.querySelector(".time").textContent = fmt(ms);
+        f.querySelector(".flag").hidden = ms > 0;
+        f.classList.toggle("running", game.status === "playing" && game.turn === colour);
+        f.classList.toggle("low", ms > 0 && ms < 20000);
+        f.classList.toggle("out", ms <= 0);
+      });
+    }
+    setInterval(tick, 100);
+    setInterval(sync, 30000);
+    board.on("change", sync);
+    board.on("drop", function (ev) { if (!ev.cancelled) posted = Date.now(); });
+    board.on("moved", sync);
+    board.on("refused", sync);
+    sync();
+  }
+
   function start() {
     var board = dd.view("board");
     if (!board) return;
@@ -145,6 +229,7 @@
     });
     board.on("dragend", function () { clear(); danger = {}; });
     checks();
+    clocks(board); // after the drop handler above, so a cancelled drop isn't timed
   }
   if (window.dd) dd.ready(start);
   else document.addEventListener("dd:ready", start);

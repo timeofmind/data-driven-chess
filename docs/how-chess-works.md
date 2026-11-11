@@ -21,10 +21,16 @@ won't let you drop a king on a red square, and the model refuses the move if it 
 made some other way. Everything else is a hint: the move is the model's to accept or
 refuse, and the server never hears about the hints.
 
-**The clock.** The server records when the game started and the exact moment each
-move reached it, so every move's time is the server's measure, not the player's
-browser's. The moves list shows how long each move took, and the game shows the total
-time each side has used. (The clock does not yet end a game; it only keeps the time.)
+**The clock.** Starting a game, you choose its time control: the minutes each side
+starts with and the seconds added to its clock at the start of each of its moves (or
+no clock). Two clocks above the board count down, the side to move running. The time
+is the server's, not your browser's: it records the exact moment each move reaches
+it, takes that move's time off the mover's clock and adds the increment, and refuses a
+move that arrives after the mover's time is up — the clock then reads 0:00 with a flag.
+The moves list shows how long each move took and what the mover had left. The clocks in
+the browser only count down from what the server last recorded, and set themselves
+right at every move. (A flag fall does not yet end the game: the side out of time can
+no longer move, and the game stays as it is.)
 
 **Turns.** After an accepted move the turn passes to the other side. The board
 refreshes itself every few seconds, so you see your opponent's move without reloading.
@@ -58,10 +64,12 @@ by `8`–`1`. Each piece is a record with a `square`; dragging it writes that sq
 The data model then decides: its *checks* say what a legal move is (counting the
 pieces between the two squares, and what stands on the destination), and its
 *triggers* do what follows (the taken piece leaves the board, the turn passes, a
-king taken ends the game). The model for all of this is about 150 lines of YAML. The clock is three expressions
-in the trigger that passes the turn: the game keeps the moment of the last move
-(`now_ms`), the moment before it, and each side's total, and the move's record takes
-the difference.
+king taken ends the game). The model for all of this is about 150 lines of YAML. The clock is a few expressions:
+the time control chosen at the start gives each side its time and increment (two
+`default_expr`), the trigger that passes the turn stamps the move's arrival (`now_ms`)
+and takes its time off the mover's clock, a check refuses a move once that clock is
+out, and the move's record keeps the time it took and what was left. The ticking is
+the script's: the browser counts down from what the server last recorded.
 
 The hints when you lift a piece are the one piece of code in the app:
 `theme/static/chess.js`, a short script on the framework's client library. It reads

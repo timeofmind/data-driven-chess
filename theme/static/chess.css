@@ -20,3 +20,13 @@
 .grid.headed .cell.capture.unsafe { background-image: radial-gradient(circle, transparent 62%, rgba(200, 30, 30, .6) 65%); }
 .grid.headed .cell.in-check { box-shadow: inset 0 0 0 4px #c62828; }
 .chess-note { font-weight: 600; color: #c62828; margin: 0 0 .5rem; }
+
+/* chess.js: the clocks above the board; the side to move is the running one. */
+.chess-clocks { display: flex; gap: .75rem; flex-wrap: wrap; max-width: 38rem; margin: 0 0 .6rem; }
+.chess-clock { flex: 1 1 10rem; display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; padding: .35rem .7rem; border: 2px solid #b58863; border-radius: .4rem; background: #f0d9b5; color: #111; }
+.chess-clock .time { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+.chess-clock.running { border-color: #5a7a2a; background: #e4ecc7; }
+.chess-clock.running .time { color: #2f4f10; }
+.chess-clock.low .time { color: #c62828; }
+.chess-clock.out { border-color: #c62828; background: #f8d7d7; }
+.chess-clock .flag { color: #c62828; font-weight: 600; font-size: .9rem; }
