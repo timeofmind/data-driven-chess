@@ -1,12 +1,12 @@
 path: /games/new
-title: Start a game
+title: Play against yourself
 access: signed_in
 interface_views:
   - type: form
     creates: Game
-    intro: "You play white. Choose who plays black — choose yourself to move both sides — and the time control."
+    intro: "A game you move both sides of, from this browser — against yourself, or someone beside you. To play another account, challenge a player instead."
     fields:
-      - {field: black_id, help: "Your opponent"}
+      - {field: black_id, help: "Who plays black — yourself, or the player beside you (every piece is moved from this browser)"}
       - {field: time_control, help: "The minutes each side starts with, and the seconds added to its clock at the start of each of its moves. The clock runs from the first move's arrival at the server; a move that arrives after the mover's time is up is refused."}
     submit: "Start"
     then: {page: game, id: saved.id}

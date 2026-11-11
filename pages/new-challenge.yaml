@@ -1,0 +1,15 @@
+path: /challenges/new
+title: Challenge a player
+access: signed_in
+interface_views:
+  - type: form
+    creates: Challenge
+    intro: "Choose your opponent, how you play, your colour and the time control. They see the challenge at once and the game starts when they accept."
+    fields:
+      - {field: to_id, help: "Who you challenge"}
+      - {field: mode, help: "Remote: each of you moves from your own browser, wherever you are. In person: you share this browser and board, and move both sides from it."}
+      - {field: colour}
+      - {field: time_control, help: "The minutes each side starts with, and the seconds added to its clock at the start of each of its moves"}
+    submit: "Challenge"
+    then: {page: challenge, id: saved.id}
+    cancel: {page: challenges}

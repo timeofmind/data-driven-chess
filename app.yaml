@@ -9,6 +9,6 @@ timezone: America/Vancouver
 
 signup:
   enabled: true
-  intro: "Sign up, start a game against another player, and drag your pieces."
+  intro: "Sign up, challenge another player — or play yourself — and drag your pieces."
 
-nav: [games, new-game]
+nav: [games, challenges, new-game]

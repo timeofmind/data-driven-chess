@@ -4,16 +4,17 @@ record: {class: Game, id: id}
 default_for: Game
 interface_views:
   - type: detail
-    fields: [white_id, black_id, time_control, turn, check, status, winner, move_count, last_move, created_at]
+    fields: [white_id, black_id, mode, time_control, turn, check, status, winner, move_count, last_move, created_at]
     # Pushed to the browser as the game changes: the clocks read these fields from the push.
     live: {push: [turn, check, status, winner, move_count, last_move, pgn, white_ms, black_ms, last_move_ms]}
     actions: [{delete: {then: {page: games}}}]
   - type: grid
     name: board
     title: Board
-    intro: "{if(record.status == 'finished', 'The game is over: ' + record.winner + ' took the king.', record.turn + ' to move. Drag one of your pieces to a square; the rules of the piece decide.')}"
+    intro: "{if(record.status == 'finished', 'The game is over: ' + record.winner + ' took the king.', record.turn + ' to move. ' + if(record.mode == 'remote', if(viewer.id == record.white_id, 'You are white. ', if(viewer.id == record.black_id, 'You are black. ', '')), '') + 'Drag one of your pieces to a square; the rules of the piece decide.')}"
     columns: [a, b, c, d, e, f, g, h]
     rows: [8, 7, 6, 5, 4, 3, 2, 1]
+    flip: "record.mode == 'remote' and viewer.id == record.black_id"   # black sees the board from its side
     live: {push: true, every: 30}   # the other side's move is pushed; a slow redraw underneath, in case
     show:
       - class: Piece

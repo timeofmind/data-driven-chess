@@ -22,7 +22,11 @@ nothing more. Everything chess-like is in the model:
   (`via: victims`), a pawn on the last rank becomes a queen (`via: me`), the turn passes
   and taking the king ends the game (`via: game_id`).
 
-The other side's move reaches your board as it happens: the game page's views say
+Two accounts play through a **challenge** (`Challenge`: from, to, remote or in person,
+colour, time control): the challenged player is its party and alone answers it; accepting
+fires a trigger that creates the game. Remotely each side's pieces belong to its own
+account; in person they all belong to white's, so one browser moves both. Black's board
+is drawn from black's side (`flip` on the grid view). The other side's move reaches your board as it happens: the game page's views say
 `live: push`, so the page keeps an event stream open and the server pushes every change
 to what they show (checked against the viewer's access) — no polling. The clock is the model's too: the time control chosen when a game starts gives each side its time and
 increment, every move is stamped as it reaches the server and its time comes off the mover's

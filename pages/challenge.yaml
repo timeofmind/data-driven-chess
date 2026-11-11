@@ -1,0 +1,32 @@
+path: /challenges/{id}
+title: "{record._title}"
+record: {class: Challenge, id: id}
+default_for: Challenge
+interface_views:
+  - type: detail
+    fields: [from_id, to_id, mode, colour, time_control, status]
+    live: {push: [answer, withdrawn]}
+    actions: [{delete: {then: {page: challenges}}}]
+  - type: form
+    name: answer
+    title: "Your answer"
+    edits: record
+    when: "viewer.id == record.to_id and record.answer == null and not record.withdrawn"
+    intro: "Accepting starts the game at once; it appears below."
+    fields: [answer]
+    submit: "Answer"
+  - type: form
+    name: withdraw
+    title: "Withdraw"
+    edits: record
+    when: "viewer.id == record.from_id and record.answer == null and not record.withdrawn"
+    intro: "Take the challenge back before it is answered."
+    fields: [withdrawn]
+    submit: "Withdraw"
+  - type: list
+    name: games
+    title: "The game"
+    data: {class: Game, where: "challenge_id == record.id", order: "id desc"}
+    fields: [white_id, black_id, mode, status, turn, move_count]
+    live: push
+    empty: "{if(record.answer == 'accepted', 'Starting…', if(record.answer == 'declined', 'Declined.', if(record.withdrawn, 'Withdrawn.', 'Not answered yet — the game appears here the moment it is accepted.')))}"

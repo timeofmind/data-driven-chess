@@ -3,9 +3,19 @@
 **Signing up.** Anyone can join with an email, a password and a name. Your name is
 what other players see.
 
-**Starting a game.** *Start a game* asks who plays black; you play white and move
-first. Choose yourself to move both sides (handy for trying it out). The board appears
-with the pieces in their starting squares.
+**Challenging a player.** *Challenge a player* asks who you challenge, how you play,
+your colour and the time control. *Remote*: each of you moves from your own browser,
+wherever you are — only the account playing a side can move its pieces. *In person*:
+you share one browser and board, and white's account moves both sides from it. The
+challenge reaches the other player's *Challenges* page the moment you send it; they
+accept or decline there (or you withdraw it first), and accepting starts the game at
+once — it appears on the challenge page for both of you, and in *Games*. Black sees the
+board from black's side.
+
+**Playing against yourself.** *Play against yourself* starts a game you move both
+sides of from this browser — against yourself, or someone beside you without an
+account of their own — with a time control. The board appears with the pieces in
+their starting squares.
 
 **Moving.** Drag one of your pieces to a square. The move is accepted or refused on the
 spot, with the reason: *it's not your turn*, *a knight moves two squares one way and one
@@ -57,7 +67,8 @@ not yet declared (a side in check with no move to make is simply stuck), and the
 no en passant — this is a demonstration of the
 framework's interactive grid, not a tournament engine.
 
-**Your games.** Your name at the top opens your page, with every game you are in.
+**Your games.** Your name at the top opens your page, with every game you are in;
+*Challenges* lists those made to you, waiting, and your own with their state.
 
 ## Why it is built this way
 
@@ -73,6 +84,14 @@ the time control chosen at the start gives each side its time and increment (two
 and takes its time off the mover's clock, a check refuses a move once that clock is
 out, and the move's record keeps the time it took and what was left. The ticking is
 the script's: the browser counts down from what the server last recorded.
+
+A challenge is a record too: from one player to another, with the mode, the colour and
+the clock. The challenged player is its *party* — the only one who may set its answer
+(`write: party`) — and a trigger creates the game when the answer is *accepted*, white
+and black by the challenger's colour; in person, every piece belongs to white's
+account, so one browser moves both sides, while remotely each side's pieces belong to
+its own account and nothing else can move them. The challenges pages say `live: push`,
+so a challenge, an answer and the game arrive without a reload.
 
 The push is the framework's: a view that says `live: push` in the page file is
 followed by the page's event stream, and the server sends it every change — on any

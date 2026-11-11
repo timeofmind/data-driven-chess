@@ -1,0 +1,28 @@
+path: /challenges
+title: Challenges
+label: Challenges
+access: signed_in
+interface_views:
+  - type: list
+    name: to_me
+    title: "Challenges to me"
+    intro: "Accept one to start the game. New ones appear here as they arrive."
+    data: {class: Challenge, where: "to_id == viewer.id and withdrawn == false and answer == null", order: "id desc"}
+    fields: [from_id, mode, colour, time_control]
+    live: push
+    empty: "No one has challenged you yet."
+  - type: list
+    name: mine
+    title: "My challenges"
+    data: {class: Challenge, where: "from_id == viewer.id", order: "id desc"}
+    fields: [to_id, mode, colour, time_control, status]
+    live: push
+    add: {page: new-challenge, label: "Challenge a player"}
+    empty: "You haven't challenged anyone. Challenge a player, or start a game against yourself."
+  - type: list
+    name: answered
+    title: "Challenges I answered"
+    data: {class: Challenge, where: "to_id == viewer.id and (answer != null or withdrawn == true)", order: "id desc", limit: 20}
+    fields: [from_id, mode, colour, time_control, status]
+    live: push
+    empty: "None yet."
