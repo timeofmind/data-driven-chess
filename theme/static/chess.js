@@ -133,7 +133,7 @@
   // and kept up to date by the pushes; record is for everyone, game only
   // while there is a clock.
   var record = null, apiBase = "";
-  function clocks(board) {
+  function clocks(board, onGame) {
     var m = location.pathname.match(/\/games\/(\d+)/);
     if (!m) return;
     var script = document.querySelector('script[src$="/static/chess.js"]');
@@ -211,7 +211,7 @@
       var n = e.detail;
       if (n.class === "Game" && record && n.id == record.id && n.fields) {
         Object.keys(n.fields).forEach(function (k) { record[k] = n.fields[k]; });
-        if (n.fields.turn || n.fields.status) setTimeout(checks, 0); // the turn or the end: say what the board shows
+        if (onGame && (n.fields.turn || n.fields.status)) setTimeout(onGame, 0); // the turn or the end: say what the board shows
       }
       if (!game || n.class !== "Game" || n.id != game.id || !n.fields) return;
       Object.keys(n.fields).forEach(function (k) { game[k] = n.fields[k]; });
@@ -324,7 +324,7 @@
     });
     board.on("dragend", function () { clear(); danger = {}; });
     checks();
-    clocks(board); // after the drop handler above, so a cancelled drop isn't timed
+    clocks(board, checks); // after the drop handler above, so a cancelled drop isn't timed; checks again on the game's pushes
   }
   if (window.dd) dd.ready(start);
   else document.addEventListener("dd:ready", start);
