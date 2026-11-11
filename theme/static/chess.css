@@ -10,3 +10,13 @@
 .grid.headed .item:hover { filter: none; transform: scale(1.08); }
 .grid.headed .cell > .add { display: none; }
 @media (max-width: 600px) { .grid.headed .item { font-size: 1.7rem; } }
+
+/* chess.js: on picking up a piece, where it may go (dot), capture (ring), and
+   for a king the squares under attack (red); a king in check; the note above. */
+.grid.headed .cell.from { box-shadow: inset 0 0 0 3px #5a7a2a; }
+.grid.headed .cell.legal { background-image: radial-gradient(circle, rgba(30, 90, 40, .45) 20%, transparent 23%); }
+.grid.headed .cell.capture { background-image: radial-gradient(circle, transparent 62%, rgba(30, 90, 40, .5) 65%); }
+.grid.headed .cell.unsafe { background-image: radial-gradient(circle, rgba(200, 30, 30, .6) 20%, transparent 23%); }
+.grid.headed .cell.capture.unsafe { background-image: radial-gradient(circle, transparent 62%, rgba(200, 30, 30, .6) 65%); }
+.grid.headed .cell.in-check { box-shadow: inset 0 0 0 4px #c62828; }
+.chess-note { font-weight: 600; color: #c62828; margin: 0 0 .5rem; }

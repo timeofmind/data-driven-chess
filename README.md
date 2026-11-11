@@ -37,7 +37,8 @@ app.yaml        the manifest: name, model and page globs, theme, sign-up, nav
 model/          the data model (players; games and pieces, with the rules)
 routing/        where the data lives: players in SQLite, games and pieces in memory
 pages/          one file per page, with its interface views
-theme/          layout.html (adds chess.css) and static/chess.css (the board's look)
+theme/          layout.html (adds chess.css and chess.js) and static/: chess.css (the board's look),
+                chess.js (move and attack hints on the framework's client library, dd.js)
 Caddyfile       one node of two, mounted below /chess
 deploy/         install.sh (runit services chess-n1 and chess-n2), nginx upstream and location
 ```
