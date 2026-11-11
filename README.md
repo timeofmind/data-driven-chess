@@ -45,8 +45,11 @@ from one browser ends on one, a remote game once both players' verdicts agree â€
 winner's claim of checkmate alone, which the model checks against the position (the losing
 king in check with every square beside it taken or attacked); a draw offer is
 a verdict too, accepted by the other player making the same. Castling is looked at only when a
-king moves two squares, and a side's castle is recorded on the game. Not described, as
-this is a demonstration: en passant, and a flag fall ending the game.
+king moves two squares, and a side's castle is recorded on the game. The clock ends a game by
+itself: a timed trigger on the game (`at`, framework v0.32.0) fires the moment the side to move
+runs out by the server's clock, fired by the cluster's leader; the browsers' clocks count down
+to that pushed moment and take the server's word. Not described, as this is a demonstration:
+en passant.
 See `docs/how-chess-works.md` for the player's view.
 
 **Nothing of a game is written to a database.** `routing/chess.yaml` keeps games and

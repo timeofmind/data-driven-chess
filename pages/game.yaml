@@ -4,14 +4,15 @@ record: {class: Game, id: id}
 default_for: Game
 interface_views:
   - type: detail
-    fields: [white_id, black_id, mode, time_control, turn, check, white_castled, black_castled, status, result, ended_by, move_count, last_move, created_at]
-    # Pushed to the browser as the game changes: the clocks read these fields from the push.
-    live: {push: [turn, check, status, winner, result, ended_by, move_count, last_move, pgn, white_ms, black_ms, last_move_ms]}
+    fields: [white_id, black_id, mode, time_control, turn, check, white_castled, black_castled, status, result, ended_by, ended_move, move_count, last_move, created_at]
+    # Pushed to the browser as the game changes: the clocks read these fields from the push
+    # (due_ms: when the side to move runs out, by the server's clock — the browsers count down to it).
+    live: {push: [turn, check, status, winner, result, ended_by, ended_move, move_count, last_move, pgn, white_ms, black_ms, last_move_ms, due_ms]}
     actions: [{delete: {then: {page: games}}}]
   - type: grid
     name: board
     title: Board
-    intro: "{if(record.status == 'finished', 'The game is over: ' + if(record.ended_by == 'checkmate', 'checkmate — ' + record.winner + ' wins.', if(record.ended_by == 'stalemate', 'stalemate, a draw.', if(record.ended_by == 'agreed', 'a draw by agreement.', record.winner + ' took the king.'))), record.turn + ' to move. ' + if(record.mode == 'remote', if(viewer.id == record.white_id, 'You are white. ', if(viewer.id == record.black_id, 'You are black. ', '')), '') + 'Drag one of your pieces to a square; the rules of the piece decide.')}"
+    intro: "{if(record.status == 'finished', 'The game is over: ' + if(record.ended_by == 'checkmate', 'checkmate — ' + record.winner + ' wins.', if(record.ended_by == 'stalemate', 'stalemate, a draw.', if(record.ended_by == 'agreed', 'a draw by agreement.', if(record.ended_by == 'timeout', if(record.winner == 'white', 'black', 'white') + ' ran out of time — ' + record.winner + ' wins.', record.winner + ' took the king.')))), record.turn + ' to move. ' + if(record.mode == 'remote', if(viewer.id == record.white_id, 'You are white. ', if(viewer.id == record.black_id, 'You are black. ', '')), '') + 'Drag one of your pieces to a square; the rules of the piece decide.')}"
     columns: [a, b, c, d, e, f, g, h]
     rows: [8, 7, 6, 5, 4, 3, 2, 1]
     flip: "record.mode == 'remote' and viewer.id == record.black_id"   # black sees the board from its side
@@ -69,7 +70,7 @@ interface_views:
       - "Triggers do the rest: the turn passes and the PGN grows, the move is recorded, the taken piece leaves the board; a pawn on the last rank becomes a queen. Taking the king ends the game."
       - "Checkmate and stalemate are found by the board's script, which tries every move left to the side to move. It reports the result to the server as a verdict; a game played from one browser ends on that report, a remote game once both players' boards report the same — or on the winner's report of checkmate alone, which the server checks against the position: the losing king in check with every square beside it taken or attacked."
       - "Castling is looked at only when a king moves two squares, and the game records a side as castled so no later move of that side looks at it again."
-      - "The clock is the server's: each move's arrival is stamped there, the time it took comes off the mover's clock with the increment added, and a move arriving after the mover's time is up is refused. The clocks above the board count down in your browser from what the server last recorded."
+      - "The clock is the server's: each move's arrival is stamped there, the time it took comes off the mover's clock with the increment added, and a move arriving after the mover's time is up is refused. A timed trigger on the game fires the moment the side to move runs out, by the server's clock, and ends the game — the clocks above the board only count down to that moment and wait for the server's word; a move made after it is refused and the board puts the piece back."
       - "Every change to the game is pushed to this page as it happens (the page keeps an event stream open): the other side's move lands on your board the moment the server has it, and the clocks take their time from the push."
       - "The game lives in memory on every node, fed by the change log — nothing of it is written to a database. The players are."
       - "Not described, as this is a demonstration: en passant, and a flag fall ending the game."

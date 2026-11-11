@@ -124,11 +124,13 @@
   // clocks: the game's record says what each side had left when it last
   // moved (its starting time until then), when the last move arrived and
   // whose move it is; the side to move counts down from that plus its
-  // increment, by the server's clock. The server's clock is ours plus an
-  // offset: from the Date header of the record's fetch (to the second), then
-  // from our own moves (the server's stamp against when we posted — to half
-  // a round trip). Below zero the face reads 0:00 and is flagged; the server
-  // refuses the move itself, so this only says what it will say.
+  // increment, by the server's clock — to due_ms, the moment the server's
+  // own timed trigger ends the game, which it pushes here. The server's clock
+  // is ours plus an offset: from the Date header of the record's fetch (to
+  // the second), then from our own moves (the server's stamp against when we
+  // posted — to half a round trip). The server is the only authority on the
+  // clock: the face reads 0:00 and waits for its word, and a move made in
+  // between is refused by the server and put back by the board.
   // The game's record (turn, status, the clocks), read once through the API
   // and kept up to date by the pushes; record is for everyone, game only
   // while there is a clock.
@@ -144,7 +146,7 @@
     ["white", "black"].forEach(function (colour) {
       var f = document.createElement("div");
       f.className = "chess-clock " + colour;
-      f.innerHTML = '<span class="who">' + (colour === "white" ? "♔ White" : "♚ Black") + '</span> <span class="time"></span><span class="flag" hidden> ⚑ time is up</span>';
+      f.innerHTML = '<span class="who">' + (colour === "white" ? "♔ White" : "♚ Black") + '</span> <span class="time"></span><span class="flag" hidden> ⚑ out of time</span>';
       el.appendChild(f);
       faces[colour] = f;
     });
@@ -187,6 +189,7 @@
     function left(colour) {
       var had = game[colour + "_ms"] == null ? game.initial_ms : game[colour + "_ms"];
       if (game.status !== "playing" || game.turn !== colour) return had;
+      if (game.due_ms) return game.due_ms - (Date.now() + offset); // the server's moment
       var since = game.last_move_ms || game.started_ms;
       return had + (game.increment_ms || 0) - (Date.now() + offset - since);
     }
@@ -194,11 +197,13 @@
       if (!game) return;
       ["white", "black"].forEach(function (colour) {
         var ms = left(colour), f = faces[colour];
+        // The server's word ends the game on time; the face only waits at 0:00.
+        var out = game.status === "finished" && game.ended_by === "timeout" && game.winner !== colour;
         f.querySelector(".time").textContent = fmt(ms);
-        f.querySelector(".flag").hidden = ms > 0;
+        f.querySelector(".flag").hidden = !out;
         f.classList.toggle("running", game.status === "playing" && game.turn === colour);
         f.classList.toggle("low", ms > 0 && ms < 20000);
-        f.classList.toggle("out", ms <= 0);
+        f.classList.toggle("out", out);
       });
     }
     setInterval(tick, 100);

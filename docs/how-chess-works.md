@@ -43,11 +43,14 @@ starts with and the seconds added to its clock at the start of each of its moves
 no clock). Two clocks above the board count down, the side to move running. The time
 is the server's, not your browser's: it records the exact moment each move reaches
 it, takes that move's time off the mover's clock and adds the increment, and refuses a
-move that arrives after the mover's time is up — the clock then reads 0:00 with a flag.
-The moves list shows how long each move took and what the mover had left. The clocks in
-the browser only count down from what the server last recorded, and set themselves
-right at every move. (A flag fall does not yet end the game: the side out of time can
-no longer move, and the game stays as it is.)
+move that arrives after the mover's time is up. The moment the side to move runs out,
+by the server's clock, the server ends the game itself — that side loses on time, the
+game records the move it ended on, and every open board hears it at once. The moves
+list shows how long each move took and what the mover had left. The clocks in the
+browser only count down to the moment the server announced, and set themselves right
+at every move; at 0:00 they wait for the server's word rather than declaring anything,
+so a move you make in the last instant is judged by the server, and if it says the game
+had already ended, the piece goes back.
 
 **Turns.** After an accepted move the turn passes to the other side. Your page keeps
 an event stream open to the server, which pushes every change to the game as it
