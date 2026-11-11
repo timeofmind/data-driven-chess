@@ -21,7 +21,7 @@ rm -rf "$tmp"
 # 3. the application and Caddyfile: root-owned, world-readable
 install -d -o root -g root -m 755 /etc/chess
 rm -rf /etc/chess/app.new && mkdir /etc/chess/app.new
-cp -r app.yaml model pages routing theme /etc/chess/app.new/
+cp -r app.yaml model pages routing theme mail /etc/chess/app.new/
 chown -R root:root /etc/chess/app.new && chmod -R u=rwX,go=rX /etc/chess/app.new
 rm -rf /etc/chess/app && mv /etc/chess/app.new /etc/chess/app
 install -o root -g root -m 644 Caddyfile /etc/chess/Caddyfile
