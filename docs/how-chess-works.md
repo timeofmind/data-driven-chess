@@ -32,8 +32,11 @@ the browser only count down from what the server last recorded, and set themselv
 right at every move. (A flag fall does not yet end the game: the side out of time can
 no longer move, and the game stays as it is.)
 
-**Turns.** After an accepted move the turn passes to the other side. The board
-refreshes itself every few seconds, so you see your opponent's move without reloading.
+**Turns.** After an accepted move the turn passes to the other side. Your page keeps
+an event stream open to the server, which pushes every change to the game as it
+happens: the other side's move lands on your board the moment the server has it,
+the moves list and the clocks with it. Nothing is polled; if the stream drops, the
+browser reconnects and the page catches up.
 
 **The king.** No move may leave your own king in check: a king can't step onto a
 square the other side attacks, a piece can't move off a line it shields the king on,
@@ -70,6 +73,11 @@ the time control chosen at the start gives each side its time and increment (two
 and takes its time off the mover's clock, a check refuses a move once that clock is
 out, and the move's record keeps the time it took and what was left. The ticking is
 the script's: the browser counts down from what the server last recorded.
+
+The push is the framework's: a view that says `live: push` in the page file is
+followed by the page's event stream, and the server sends it every change — on any
+node of the cluster — to the records the view shows that the viewer may read, with the
+fields the view names. The clocks read the game's clock fields from that push.
 
 The hints when you lift a piece are the one piece of code in the app:
 `theme/static/chess.js`, a short script on the framework's client library. It reads

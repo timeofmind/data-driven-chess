@@ -135,8 +135,9 @@
         if (posted && game && g.last_move_ms && g.last_move_ms !== game.last_move_ms) {
           offset = g.last_move_ms - (posted + got) / 2;
           exact = true;
+          posted = 0;
         }
-        posted = 0;
+        lastSeen = g.last_move_ms || lastSeen;
         game = g;
         el.hidden = false;
         tick();
@@ -167,10 +168,28 @@
       });
     }
     setInterval(tick, 100);
-    setInterval(sync, 30000);
-    board.on("change", sync);
+    // The game's record, read once; then the server pushes its changes to
+    // this page (the detail view says live: push with the clock's fields),
+    // so each push brings the clock up to date without another request.
+    // Without the stream (an old proxy), the record is read again on every
+    // change of the board, and now and then.
+    var lastSeen = 0; // the last move's stamp we have seen
+    document.addEventListener("dd:push", function (e) {
+      var n = e.detail;
+      if (!game || n.class !== "Game" || n.id != game.id || !n.fields) return;
+      Object.keys(n.fields).forEach(function (k) { game[k] = n.fields[k]; });
+      if (posted && n.fields.last_move_ms && n.fields.last_move_ms !== lastSeen) {
+        offset = n.fields.last_move_ms - (posted + Date.now()) / 2; // our own move's stamp
+        exact = true;
+        posted = 0;
+      }
+      lastSeen = n.fields.last_move_ms || lastSeen;
+      tick();
+    });
+    setInterval(function () { if (!(window.dd && dd.live && dd.live())) sync(); }, 30000);
+    board.on("change", function () { if (!(dd.live && dd.live())) sync(); });
     board.on("drop", function (ev) { if (!ev.cancelled) posted = Date.now(); });
-    board.on("moved", sync);
+    board.on("moved", function () { if (!(dd.live && dd.live())) sync(); });
     board.on("refused", sync);
     sync();
   }

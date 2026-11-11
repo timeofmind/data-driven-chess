@@ -5,6 +5,8 @@ default_for: Game
 interface_views:
   - type: detail
     fields: [white_id, black_id, time_control, turn, check, status, winner, move_count, last_move, created_at]
+    # Pushed to the browser as the game changes: the clocks read these fields from the push.
+    live: {push: [turn, check, status, winner, move_count, last_move, pgn, white_ms, black_ms, last_move_ms]}
     actions: [{delete: {then: {page: games}}}]
   - type: grid
     name: board
@@ -12,7 +14,7 @@ interface_views:
     intro: "{if(record.status == 'finished', 'The game is over: ' + record.winner + ' took the king.', record.turn + ' to move. Drag one of your pieces to a square; the rules of the piece decide.')}"
     columns: [a, b, c, d, e, f, g, h]
     rows: [8, 7, 6, 5, 4, 3, 2, 1]
-    live: 4
+    live: {push: true, every: 30}   # the other side's move is pushed; a slow redraw underneath, in case
     show:
       - class: Piece
         label: Pieces
@@ -26,17 +28,20 @@ interface_views:
     name: pgn
     title: Moves
     text: "{if(record.pgn == null, 'No move yet.', record.pgn)}"
+    live: push
   - type: list
     name: moves
     data: {class: Move, where: "game_id == record.id", order: "number asc"}
     fields: [number, colour, piece, from_square, to_square, san, took, left]
     page_size: 200
     empty: "No move yet."
+    live: push
   - type: list
     title: Taken
     data: {class: Piece, where: "game_id == record.id and captured == true", order: "id asc"}
     fields: [colour, kind]
     empty: "No piece has been taken yet."
+    live: push
   - type: text
     title: How this works
     items:
@@ -44,5 +49,6 @@ interface_views:
       - "The model's checks accept or refuse the move: whose turn it is, how that kind of piece moves, whether the way is clear (a count of the pieces between), what stands on the square."
       - "Triggers do the rest: the turn passes and the PGN grows, the move is recorded, the taken piece leaves the board; a pawn on the last rank becomes a queen. Taking the king ends the game."
       - "The clock is the server's: each move's arrival is stamped there, the time it took comes off the mover's clock with the increment added, and a move arriving after the mover's time is up is refused. The clocks above the board count down in your browser from what the server last recorded."
+      - "Every change to the game is pushed to this page as it happens (the page keeps an event stream open): the other side's move lands on your board the moment the server has it, and the clocks take their time from the push."
       - "The game lives in memory on every node, fed by the change log — nothing of it is written to a database. The players are."
       - "Not described, as this is a demonstration: en passant, checkmate (a side in check with no move is stuck), and a flag fall ending the game."

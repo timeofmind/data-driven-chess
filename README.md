@@ -22,7 +22,9 @@ nothing more. Everything chess-like is in the model:
   (`via: victims`), a pawn on the last rank becomes a queen (`via: me`), the turn passes
   and taking the king ends the game (`via: game_id`).
 
-The clock is the model's too: the time control chosen when a game starts gives each side its time and
+The other side's move reaches your board as it happens: the game page's views say
+`live: push`, so the page keeps an event stream open and the server pushes every change
+to what they show (checked against the viewer's access) — no polling. The clock is the model's too: the time control chosen when a game starts gives each side its time and
 increment, every move is stamped as it reaches the server and its time comes off the mover's
 clock, and a move after the mover's time is up is refused. The clocks that tick above the board
 are the app's script, counting down from what the server last recorded.
