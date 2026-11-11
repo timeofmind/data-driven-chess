@@ -21,6 +21,11 @@ won't let you drop a king on a red square, and the model refuses the move if it 
 made some other way. Everything else is a hint: the move is the model's to accept or
 refuse, and the server never hears about the hints.
 
+**The clock.** The server records when the game started and the exact moment each
+move reached it, so every move's time is the server's measure, not the player's
+browser's. The moves list shows how long each move took, and the game shows the total
+time each side has used. (The clock does not yet end a game; it only keeps the time.)
+
 **Turns.** After an accepted move the turn passes to the other side. The board
 refreshes itself every few seconds, so you see your opponent's move without reloading.
 
@@ -43,7 +48,10 @@ by `8`–`1`. Each piece is a record with a `square`; dragging it writes that sq
 The data model then decides: its *checks* say what a legal move is (counting the
 pieces between the two squares, and what stands on the destination), and its
 *triggers* do what follows (the taken piece leaves the board, the turn passes, a
-king taken ends the game). The model for all of this is about 150 lines of YAML.
+king taken ends the game). The model for all of this is about 150 lines of YAML. The clock is three expressions
+in the trigger that passes the turn: the game keeps the moment of the last move
+(`now_ms`), the moment before it, and each side's total, and the move's record takes
+the difference.
 
 The hints when you lift a piece are the one piece of code in the app:
 `theme/static/chess.js`, a short script on the framework's client library. It reads
