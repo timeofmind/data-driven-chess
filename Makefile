@@ -13,6 +13,7 @@ validate:            ## the data model (every expression too) and every page aga
 
 config:              ## the whole app (manifest, model, pages, theme) loads in the handler
 	CHESS_APP=$(CURDIR) CHESS_DATA=$(TMP) CHESS_DB=$(TMP)/players.db CHESS_ADMINS=nobody@example.org CHESS_TOKEN_KEY=/dev/null \
+	  CHESS_SMTP_HOST=127.0.0.1 CHESS_SMTP_PORT=25 CHESS_MAIL_FROM=chess@example.org \
 	  go run $(CADDY) validate --adapter caddyfile --config Caddyfile.check
 	rm -rf $(TMP)
 
