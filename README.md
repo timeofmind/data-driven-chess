@@ -39,7 +39,10 @@ authentication) with the `password-reset` template — a `MailTemplate` record i
 made one at /mail-templates, else `mail/password-reset.yaml` — and the handler's /forgot
 and /reset pages do the rest (`model/30-mail.yaml`).
 
-Not described, as this is a demonstration: en passant, checkmate (a side in check with no move is stuck; the game ends when a king is taken), and a flag fall ending the game.
+Checkmate and stalemate are declared by the board's script, which tries every move the side to
+move has (the server only refuses them one by one). Not described, as this is a demonstration:
+en passant, and the server ending a game on checkmate or a flag fall (the game record is
+finished when a king is taken).
 See `docs/how-chess-works.md` for the player's view.
 
 **Nothing of a game is written to a database.** `routing/chess.yaml` keeps games and

@@ -69,10 +69,11 @@ king's first move, with a rook that has never moved, over empty squares, and nei
 out of check nor across or onto an attacked square; otherwise it is refused and the
 message says what castling needs. The PGN writes O-O or O-O-O.
 
-**Winning.** The game ends when a king is taken; the board says who won. Checkmate is
-not yet declared (a side in check with no move to make is simply stuck), and there is
-no en passant — this is a demonstration of the
-framework's interactive grid, not a tournament engine.
+**Winning.** When the side to move is in check and has no move that ends it, the board
+declares checkmate and names the winner; with no move but not in check, stalemate. The
+board works this out from the pieces it shows, the same way the server judges each
+move; the server itself only refuses every move, so the game record stays open — it is
+finished, for the record, when a king is taken.
 
 **Your games.** Your name at the top opens your page, with every game you are in;
 *Challenges* lists those made to you, waiting, and your own with their state.

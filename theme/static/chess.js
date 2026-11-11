@@ -4,7 +4,8 @@
 // would otherwise work out by eye, from the rows the board already shows:
 // on picking up a piece, the squares its own rules let it go to (a dot) or
 // capture on (a ring), and for a king the squares the other side attacks
-// (red); after every redraw, whether a king is in check. A king is not
+// (red); after every redraw, whether a king is in check — and checkmate or
+// stalemate, when the side to move has no move left. A king is not
 // dropped on a red square: the drop is cancelled before anything is posted.
 // And the clocks: two faces above the board counting down in the browser
 // from what the server last recorded (the game's record, read through the
@@ -92,6 +93,32 @@
     var k = null;
     Object.keys(pos).forEach(function (s) { if (pos[s].kind === "king" && pos[s].colour === colour) k = s; });
     return k;
+  }
+  // after: the position once a piece has moved from one square to another
+  // (whatever stood there is taken).
+  function after(pos, from, to) {
+    var next = {};
+    Object.keys(pos).forEach(function (s) { if (s !== from && s !== to) next[s] = pos[s]; });
+    var pc = pos[from];
+    next[to] = { colour: pc.colour, kind: pc.kind, square: to };
+    return next;
+  }
+  // hasLegalMove: some move of the colour leaves its own king unattacked —
+  // the same rule the model applies to every move. None, in check: mate;
+  // none, not in check: stalemate.
+  function hasLegalMove(colour, pos) {
+    var squares = Object.keys(pos);
+    for (var i = 0; i < squares.length; i++) {
+      var pc = pos[squares[i]];
+      if (pc.colour !== colour) continue;
+      var tos = moves(pc, pos);
+      for (var j = 0; j < tos.length; j++) {
+        var next = after(pos, pc.square, tos[j]);
+        var k = kingOf(colour, next);
+        if (k && !attacked(other(colour), next)[k]) return true;
+      }
+    }
+    return false;
   }
 
   // clocks: the game's record says what each side had left when it last
@@ -206,19 +233,35 @@
     function clear() {
       board.cells().forEach(function (c) { c.el.classList.remove("legal", "capture", "unsafe", "from"); });
     }
-    // checks: a king on a square the other side attacks. The redraw resets
-    // cell classes, so this runs after every change.
+    // checks: a king on a square the other side attacks — and, for the side
+    // to move, whether any move is left: none in check is checkmate, none
+    // otherwise stalemate. The model never declares these (it only refuses
+    // every move); the board says so. The redraw resets cell classes, so
+    // this runs after every change.
+    function toMove() {
+      var m = (board.el.querySelector(".muted") || {}).textContent || "";
+      m = m.toLowerCase();
+      return m.indexOf("black to move") === 0 ? "black" : m.indexOf("white to move") === 0 ? "white" : null;
+    }
     function checks() {
-      var pos = position(board), said = [];
+      var pos = position(board), said = [], over = false, turn = toMove();
       ["white", "black"].forEach(function (colour) {
-        var k = kingOf(colour, pos);
-        if (!k || !attacked(other(colour), pos)[k]) return;
-        said.push((colour === "white" ? "White" : "Black") + " is in check.");
-        var c = board.cell(k);
-        if (c) c.el.classList.add("in-check");
+        var k = kingOf(colour, pos), name = colour === "white" ? "White" : "Black";
+        var inCheck = !!k && !!attacked(other(colour), pos)[k];
+        if (inCheck) {
+          var c = board.cell(k);
+          if (c) c.el.classList.add("in-check");
+        }
+        if (colour === turn && k && !hasLegalMove(colour, pos)) {
+          said.push(inCheck ? "Checkmate: " + name + " has no move. " + (colour === "white" ? "Black" : "White") + " wins." : "Stalemate: " + name + " has no move. A draw.");
+          over = true;
+        } else if (inCheck) {
+          said.push(name + " is in check.");
+        }
       });
       note.textContent = said.join(" ");
       note.hidden = !said.length;
+      note.classList.toggle("game-over", over);
     }
     var danger = {}; // while a king is lifted: the squares it must not go to
     board.on("change", function () { clear(); checks(); });
