@@ -4,8 +4,9 @@
 // would otherwise work out by eye, from the rows the board already shows:
 // on picking up a piece, the squares its own rules let it go to (a dot) or
 // capture on (a ring), and for a king the squares the other side attacks
-// (red); after every redraw, whether a king is in check. Nothing here is
-// posted — the server never hears from this script.
+// (red); after every redraw, whether a king is in check. A king is not
+// dropped on a red square: the drop is cancelled before anything is posted.
+// Nothing here is posted — the server never hears from this script.
 (function () {
   "use strict";
   var KIND = { "♔": "king", "♕": "queen", "♖": "rook", "♗": "bishop", "♘": "knight", "♙": "pawn",
@@ -116,13 +117,15 @@
       note.textContent = said.join(" ");
       note.hidden = !said.length;
     }
+    var danger = {}; // while a king is lifted: the squares it must not go to
     board.on("change", function () { clear(); checks(); });
     board.on("dragstart", function (ev) {
       clear();
+      danger = {};
       var pos = position(board), pc = pos[ev.row.fields.square];
       if (!pc) return;
       ev.cell.el.classList.add("from");
-      var danger = pc.kind === "king" ? attacked(other(pc.colour), pos, pc.square) : {};
+      if (pc.kind === "king") danger = attacked(other(pc.colour), pos, pc.square);
       moves(pc, pos).forEach(function (s) {
         var c = board.cell(s);
         if (!c) return;
@@ -130,7 +133,17 @@
         if (danger[s]) c.el.classList.add("unsafe");
       });
     });
-    board.on("dragend", clear);
+    // A king onto an attacked square: no drop cursor, and the drop is refused
+    // here, so nothing is posted.
+    board.on("dragover", function (ev) { if (danger[ev.cell.key]) ev.cancel(); });
+    board.on("drop", function (ev) {
+      if (!danger[ev.cell.key]) return;
+      ev.cancel();
+      note.textContent = "The king can't move to " + ev.cell.key + ": that square is attacked.";
+      note.hidden = false;
+      setTimeout(checks, 2500);
+    });
+    board.on("dragend", function () { clear(); danger = {}; });
     checks();
   }
   if (window.dd) dd.ready(start);
