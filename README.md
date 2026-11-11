@@ -48,8 +48,9 @@ a verdict too, accepted by the other player making the same. Castling is looked 
 king moves two squares, and a side's castle is recorded on the game. The clock ends a game by
 itself: a timed trigger on the game (`at`, framework v0.32.0) fires the moment the side to move
 runs out by the server's clock, fired by the cluster's leader; the browsers' clocks count down
-to that pushed moment and take the server's word. Not described, as this is a demonstration:
-en passant.
+to that pushed moment and take the server's word. En passant: the game remembers the square a
+pawn's two-square step skipped for one move, the pawn beside it may capture onto it, and a
+trigger takes the pawn that passed.
 See `docs/how-chess-works.md` for the player's view.
 
 **Nothing of a game is written to a database.** `routing/chess.yaml` keeps games and

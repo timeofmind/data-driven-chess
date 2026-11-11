@@ -29,7 +29,11 @@
 # The server never searches for a mate: the boards' scripts find it and report
 # a Verdict, and a claimed checkmate is checked against the position (the
 # losing king in check with every square beside it taken or attacked), so the
-# winner's claim alone ends the game. Not described (a demonstration): en passant.
+# winner's claim alone ends the game. En passant: the game remembers the square a
+# pawn's two-square step skipped, for the next move alone; a pawn beside it may
+# capture onto that square, and the pawn that passed is taken (a trigger). The
+# king-safety rule doesn't see that pawn leave, so the rare uncovered attack
+# along the rank is not caught — the one approximation left.
 enums:
   Colour: {values: [white, black]}
   Kind: {values: [king, queen, rook, bishop, knight, pawn]}
@@ -113,6 +117,11 @@ classes:
       - {name: last_move, type: string, read_only: true, label: "Last move"}
       - {name: last_piece_id, type: integer, read_only: true}
       - {name: last_square, type: string, read_only: true}
+      # En passant: when the last move was a pawn's two-square step, the square
+      # it skipped (file and rank) — an enemy pawn beside it may capture onto
+      # that square on this move alone, taking the pawn that passed.
+      - {name: ep_file, type: integer, read_only: true}
+      - {name: ep_rank, type: integer, read_only: true}
       - {name: pgn, type: text, read_only: true, label: "PGN", description: "The moves from the start, in portable game notation"}
       - {name: check, type: boolean, read_only: true, default: false, label: "In check", description: "Whether the side to move is in check (the last move gave it)"}
       # Castled: recorded by the castle itself, so no later move of that side ever looks at castling again.
@@ -250,7 +259,7 @@ classes:
       # new square, or another of its side does along a line this move uncovered.
       - {name: gives_check, expr: "from_file != null and not captured and (((kind == 'pawn' and abs(file - ek_file) == 1 and ek_rank - rank == if(colour == 'white', 1, -1)) or (kind == 'knight' and abs(file - ek_file) * abs(rank - ek_rank) == 2) or (((kind == 'rook' or kind == 'queen') and (file == ek_file or rank == ek_rank) or (kind == 'bishop' or kind == 'queen') and (diag_a == ek_diag_a or diag_b == ek_diag_b)) and between_ek.count == 0)) or discovered.count > 0)"}
       # The move's notation, read while the trigger records it (the victims still there).
-      - {name: san, expr: "if(kind == 'king' and from_file != null and abs(file - from_file) == 2, if(file == 7, 'O-O', 'O-O-O'), if(kind == 'pawn' or promoting, if(victims.count > 0, substr('abcdefgh', from_file - 1, 1) + 'x', ''), if(kind == 'king', 'K', if(kind == 'queen', 'Q', if(kind == 'rook', 'R', if(kind == 'bishop', 'B', 'N')))) + if(victims.count > 0, 'x', '')) + square + if(promoting, '=Q', ''))"}
+      - {name: san, expr: "if(kind == 'king' and from_file != null and abs(file - from_file) == 2, if(file == 7, 'O-O', 'O-O-O'), if(kind == 'pawn' or promoting, if(victims.count > 0 or file != from_file, substr('abcdefgh', from_file - 1, 1) + 'x', ''), if(kind == 'king', 'K', if(kind == 'queen', 'Q', if(kind == 'rook', 'R', if(kind == 'bishop', 'B', 'N')))) + if(victims.count > 0, 'x', '')) + square + if(promoting, '=Q', ''))"}
       - {name: glyph, expr: "if(colour == 'white', if(kind == 'king', '♔', if(kind == 'queen', '♕', if(kind == 'rook', '♖', if(kind == 'bishop', '♗', if(kind == 'knight', '♘', '♙'))))), if(kind == 'king', '♚', if(kind == 'queen', '♛', if(kind == 'rook', '♜', if(kind == 'bishop', '♝', if(kind == 'knight', '♞', '♟'))))))"}
     relationships:
       belongs_to:
@@ -315,6 +324,10 @@ classes:
            where: "id != self.id and captured == false and not (kind == 'king' and colour == outer.loser) and file >= min(self.file, (outer.lk_file - 1)) and file <= max(self.file, (outer.lk_file - 1)) and rank >= min(self.rank, outer.lk_rank) and rank <= max(self.rank, outer.lk_rank) and (file != self.file or rank != self.rank) and (file != (outer.lk_file - 1) or rank != outer.lk_rank) and ((rank == self.rank and self.rank == outer.lk_rank) or (file == self.file and self.file == (outer.lk_file - 1)) or (file - rank == self.file - self.rank and self.file - self.rank == (outer.lk_file - 1) - outer.lk_rank) or (file + rank == self.file + self.rank and self.file + self.rank == (outer.lk_file - 1) + outer.lk_rank))"}
         - {target: Piece, name: vbtw_nw, match: {game_id: game_id},
            where: "id != self.id and captured == false and not (kind == 'king' and colour == outer.loser) and file >= min(self.file, (outer.lk_file - 1)) and file <= max(self.file, (outer.lk_file - 1)) and rank >= min(self.rank, (outer.lk_rank + 1)) and rank <= max(self.rank, (outer.lk_rank + 1)) and (file != self.file or rank != self.rank) and (file != (outer.lk_file - 1) or rank != (outer.lk_rank + 1)) and ((rank == self.rank and self.rank == (outer.lk_rank + 1)) or (file == self.file and self.file == (outer.lk_file - 1)) or (file - rank == self.file - self.rank and self.file - self.rank == (outer.lk_file - 1) - (outer.lk_rank + 1)) or (file + rank == self.file + self.rank and self.file + self.rank == (outer.lk_file - 1) + (outer.lk_rank + 1)))"}
+        # En passant: the pawn that just passed this one — beside its old square,
+        # on the file it captures onto (the capture square itself is empty).
+        - {target: Piece, name: ep_victims, match: {game_id: game_id},
+           where: "id != self.id and captured == false and colour != self.colour and kind == 'pawn' and file == self.file and rank == self.from_rank"}
         # Pieces on the line of the last move, strictly between its squares.
         - {target: Piece, name: blockers, match: {game_id: game_id},
            where: "id != self.id and captured == false and file >= min(self.file, self.from_file) and file <= max(self.file, self.from_file) and rank >= min(self.rank, self.from_rank) and rank <= max(self.rank, self.from_rank) and (file != self.file or rank != self.rank) and ((rank == self.rank and self.rank == self.from_rank) or (file == self.file and self.file == self.from_file) or (diag_a == self.diag_a and self.file - self.rank == self.from_file - self.from_rank) or (diag_b == self.diag_b and self.file + self.rank == self.from_file + self.from_rank))"}
@@ -362,7 +375,7 @@ classes:
       - {check: "captured or from_file == null or castled or kind != 'rook' or ((file == from_file or rank == from_rank) and blockers.count == 0)", message: "a rook moves along a rank or file, over empty squares", slot: square}
       - {check: "captured or from_file == null or castled or kind != 'bishop' or (abs(file - from_file) == abs(rank - from_rank) and blockers.count == 0)", message: "a bishop moves along a diagonal, over empty squares", slot: square}
       - {check: "captured or from_file == null or castled or kind != 'knight' or abs(file - from_file) * abs(rank - from_rank) == 2", message: "a knight moves two squares one way and one the other", slot: square}
-      - {check: "captured or from_file == null or castled or (kind != 'pawn' and not promoting) or (file == from_file and rank - from_rank == if(colour == 'white', 1, -1) and victims.count == 0) or (file == from_file and rank - from_rank == if(colour == 'white', 2, -2) and from_rank == if(colour == 'white', 2, 7) and victims.count == 0 and blockers.count == 0) or (abs(file - from_file) == 1 and rank - from_rank == if(colour == 'white', 1, -1) and victims.count == 1)", message: "a pawn moves one square forward (two from its first rank) and captures diagonally", slot: square}
+      - {check: "captured or from_file == null or castled or (kind != 'pawn' and not promoting) or (file == from_file and rank - from_rank == if(colour == 'white', 1, -1) and victims.count == 0) or (file == from_file and rank - from_rank == if(colour == 'white', 2, -2) and from_rank == if(colour == 'white', 2, 7) and victims.count == 0 and blockers.count == 0) or (abs(file - from_file) == 1 and rank - from_rank == if(colour == 'white', 1, -1) and (victims.count == 1 or (victims.count == 0 and file == game.ep_file and rank == game.ep_rank)))", message: "a pawn moves one square forward (two from its first rank) and captures diagonally — or en passant, onto the square a pawn just skipped", slot: square}
     triggers:
       # Each fires for a piece that has moved (from_file is set by its first
       # move), in this order: a castle's rook, the game, the move's record, then
@@ -387,6 +400,8 @@ classes:
           black_ms: "if(self.colour == 'black' and target.initial_ms != null, coalesce(target.black_ms, target.initial_ms) + target.increment_ms - (now_ms - coalesce(target.last_move_ms, target.started_ms)), target.black_ms)"
           last_piece_id: self.id
           last_square: self.square
+          ep_file: "if(self.kind == 'pawn' and abs(self.rank - self.from_rank) == 2, self.file, null)"
+          ep_rank: "if(self.kind == 'pawn' and abs(self.rank - self.from_rank) == 2, (self.rank + self.from_rank) / 2, null)"
           white_castled: "if(self.kind == 'king' and self.colour == 'white' and abs(self.file - self.from_file) == 2, true, target.white_castled)"
           black_castled: "if(self.kind == 'king' and self.colour == 'black' and abs(self.file - self.from_file) == 2, true, target.black_castled)"
           white_king_file: "if(self.kind == 'king' and self.colour == 'white', self.file, target.white_king_file)"
@@ -411,7 +426,7 @@ classes:
           piece: "if(self.promoting, 'pawn', self.kind)"
           from_square: "substr('abcdefgh', self.from_file - 1, 1) + self.from_rank"
           to_square: self.square
-          captured: "if(self.victims.count > 0, true, false)"
+          captured: "if(self.victims.count > 0 or (self.kind == 'pawn' and self.file != self.from_file), true, false)"
           san: "self.san + if(self.gives_check, '+', '')"
           check: self.gives_check
           # When it reached the server (created_at says so to the second; this
@@ -421,6 +436,8 @@ classes:
           left_ms: "if(self.colour == 'white', self.game.white_ms, self.game.black_ms)"
       # What was on the square is taken (after the game has seen it).
       - {via: victims, if: "not self.captured and self.from_file != null and not self.castled", set: {captured: "true", square: "null"}}
+      # En passant: a pawn's diagonal move onto an empty square takes the pawn that passed.
+      - {via: ep_victims, if: "not self.captured and self.from_file != null and not self.castled and self.kind == 'pawn' and self.file != self.from_file and self.victims.count == 0", set: {captured: "true", square: "null"}}
   Move:
     description: "One move of a game, in the order played"
     access: {parent: game_id}

@@ -71,9 +71,12 @@
     });
     return set;
   }
+  // epSquare: the square a pawn's two-square step just skipped (the game's
+  // record says), where an enemy pawn beside it may capture en passant.
+  function epSquare() { return record && record.ep_file && record.ep_rank ? sq(record.ep_file, record.ep_rank) : null; }
   // moves: where a piece may go by its own rules — captures included, own
   // pieces excluded; pawns push one (two from the start rank) and capture
-  // diagonally. No castling or en passant: the model doesn't know them either.
+  // diagonally, en passant too. No castling: the hints leave it to the model.
   function moves(pc, pos) {
     var out = [];
     if (pc.kind === "pawn") {
@@ -83,7 +86,7 @@
         out.push(one);
         if (r === start && two && !pos[two]) out.push(two);
       }
-      attacks(pc, pos).forEach(function (s) { if (pos[s] && pos[s].colour !== pc.colour) out.push(s); });
+      attacks(pc, pos).forEach(function (s) { if ((pos[s] && pos[s].colour !== pc.colour) || s === epSquare()) out.push(s); });
       return out;
     }
     attacks(pc, pos).forEach(function (s) { if (!pos[s] || pos[s].colour !== pc.colour) out.push(s); });
@@ -95,11 +98,13 @@
     return k;
   }
   // after: the position once a piece has moved from one square to another
-  // (whatever stood there is taken).
+  // (whatever stood there is taken; a pawn's diagonal move onto an empty
+  // square takes the pawn beside its old square, en passant).
   function after(pos, from, to) {
     var next = {};
     Object.keys(pos).forEach(function (s) { if (s !== from && s !== to) next[s] = pos[s]; });
     var pc = pos[from];
+    if (pc.kind === "pawn" && fileOf(from) !== fileOf(to) && !pos[to]) delete next[FILES[fileOf(to) - 1] + rankOf(from)];
     next[to] = { colour: pc.colour, kind: pc.kind, square: to };
     return next;
   }
@@ -318,7 +323,7 @@
       moves(pc, pos).forEach(function (s) {
         var c = board.cell(s);
         if (!c) return;
-        c.el.classList.add(pos[s] ? "capture" : "legal");
+        c.el.classList.add(pos[s] || s === epSquare() ? "capture" : "legal");
         if (danger[s]) c.el.classList.add("unsafe");
       });
     });

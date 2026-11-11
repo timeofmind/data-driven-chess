@@ -75,6 +75,12 @@ as castled (*White castled: Yes*), and the castling conditions are looked at onl
 king moves two squares — never on an ordinary move, and never again for a side that has
 castled.
 
+**En passant.** When a pawn steps two squares, the game remembers the square it skipped
+for the next move alone. A pawn standing beside it may then capture onto that square,
+and the pawn that passed is taken — the usual diagonal pawn move onto an empty square,
+which the rules accept only then. The board shows the square with a capture ring when
+you lift the pawn, and the PGN writes it as a capture (exd6).
+
 **Winning.** When the side to move is in check and has no move that ends it, the board
 declares checkmate and names the winner; with no move but not in check, stalemate. The
 board works this out from the pieces it shows, the same way the server judges each
