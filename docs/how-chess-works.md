@@ -67,15 +67,24 @@ game records it too (*In check: Yes*) and the move that gave it gets a + in the 
 c1 (g8 or c8 for black). The rook moves with it. The move is accepted only on the
 king's first move, with a rook that has never moved, over empty squares, and neither
 out of check nor across or onto an attacked square; otherwise it is refused and the
-message says what castling needs. The PGN writes O-O or O-O-O.
+message says what castling needs. The PGN writes O-O or O-O-O. The game records a side
+as castled (*White castled: Yes*), and the castling conditions are looked at only when a
+king moves two squares — never on an ordinary move, and never again for a side that has
+castled.
 
 **Winning.** When the side to move is in check and has no move that ends it, the board
 declares checkmate and names the winner; with no move but not in check, stalemate. The
 board works this out from the pieces it shows, the same way the server judges each
 move, and reports it to the server as its verdict. A game played from one browser ends
-on that report; a remote game ends once both players' boards have reported the same.
-The game then shows its result and how it ended, the PGN its score, and no more moves
-are accepted.
+on that report; a remote game ends once both players' boards have reported the same —
+or on the winner's report of checkmate alone, which the server checks against the
+position: the losing side is to move and in check, and every square beside its king is
+off the board, one of its own pieces or attacked. So a losing side that closes its board
+cannot keep the game open. (The server does not look for a capture of the checking piece
+or a block of the check; the board never reports a mate that isn't one, so only a report
+made around the board could end a game that way.) Stalemate, a draw,
+ends a remote game when both boards report it. The game then shows its result and how
+it ended, the PGN its score, and no more moves are accepted.
 
 **A draw.** *Offer a draw* under the board makes an offer the other player sees at once;
 they accept by offering the same, and the game is drawn. Open your offer in the list to
@@ -117,7 +126,12 @@ which trusts localhost, so no credentials — with the `password-reset` template
 A game's end is a record too: a `Verdict` from a player (only a player of the game may
 make one per ending), with the result and how it ended — a draw offer is one too; a trigger on the game finishes it on
 one verdict for a game played from one browser, and for a remote game once the verdicts
-of that game agreeing with this one count two.
+of that game agreeing with this one count two, or on the winner's claim of checkmate
+when the position bears it out: the verdict copies the losing king's square and side
+(`default_expr` reading the game), and eight relationships, one per square beside the
+king, count what makes that square no escape — its own piece on it, or a winning piece
+attacking it (a slider with nothing between, the losing king itself not counted since it
+would be the one moving). The server never searches for a mate; it only checks a claim.
 
 The push is the framework's: a view that says `live: push` in the page file is
 followed by the page's event stream, and the server sends it every change — on any

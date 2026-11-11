@@ -41,8 +41,11 @@ and /reset pages do the rest (`model/30-mail.yaml`).
 
 Checkmate and stalemate are found by the board's script, which tries every move the side to
 move has (the server only refuses them one by one), and reported as a `Verdict`: a game played
-from one browser ends on one, a remote game once both players' verdicts agree; a draw offer is
-a verdict too, accepted by the other player making the same. Not described, as
+from one browser ends on one, a remote game once both players' verdicts agree — or on the
+winner's claim of checkmate alone, which the model checks against the position (the losing
+king in check with every square beside it taken or attacked); a draw offer is
+a verdict too, accepted by the other player making the same. Castling is looked at only when a
+king moves two squares, and a side's castle is recorded on the game. Not described, as
 this is a demonstration: en passant, and a flag fall ending the game.
 See `docs/how-chess-works.md` for the player's view.
 

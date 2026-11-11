@@ -136,8 +136,6 @@
   function clocks(board, onGame) {
     var m = location.pathname.match(/\/games\/(\d+)/);
     if (!m) return;
-    var script = document.querySelector('script[src$="/static/chess.js"]');
-    apiBase = (script ? script.getAttribute("src").replace(/\/static\/chess\.js$/, "") : "") + "/api/v1";
     var api = apiBase + "/games/" + m[1];
     var el = document.createElement("div");
     el.className = "chess-clocks";
@@ -152,7 +150,7 @@
     });
     board.el.insertBefore(el, board.grid());
     board.mark(el);
-    var game = null, offset = 0, posted = 0, exact = false;
+    var game = null, offset = 0, posted = 0, exact = false, told = false;
 
     function sync() {
       var sent = Date.now();
@@ -163,6 +161,9 @@
       }).then(function (j) {
         var g = j && j.data ? j.data : j;
         record = g || record;
+        // The record in hand: say what the board shows (a game opened
+        // already mated is reported now, not only on its next change).
+        if (onGame && !told) { told = true; setTimeout(onGame, 0); }
         if (!g || g.initial_ms == null) { el.hidden = true; game = null; return; }
         // Our own move: the server stamped it between our posting it and its answer.
         if (posted && game && g.last_move_ms && g.last_move_ms !== game.last_move_ms) {
@@ -234,6 +235,8 @@
   function start() {
     var board = dd.view("board");
     if (!board) return;
+    var script = document.querySelector('script[src$="/static/chess.js"]');
+    apiBase = (script ? script.getAttribute("src").replace(/\/static\/chess\.js$/, "") : "") + "/api/v1";
     var note = document.createElement("p");
     note.className = "chess-note";
     note.hidden = true;
@@ -259,7 +262,9 @@
     }
     // report sends the board's verdict to the server, once, from a player's
     // browser (one that may move something): a game played from one browser
-    // ends on it, a remote game once both players' boards agree.
+    // ends on it, a remote game once both players' boards agree — or on the
+    // winner's report alone when the server finds the position bears it out
+    // (the losing king in check with no square to go to).
     var reported = false;
     function report(result, endedBy) {
       if (reported || !board.canMove() || !apiBase || (record && record.status !== "playing")) return;
