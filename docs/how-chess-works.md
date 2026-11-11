@@ -50,12 +50,10 @@ The hints when you lift a piece are the one piece of code in the app:
 the pieces the board already shows, works out reach and attack in the browser, and
 colours squares and refuses a king's drop on an attacked square. It cannot write
 anything and the model never relies on it: the model knows what an attacked square is
-on its own, without a search. After every move a trigger stores, on every piece, how
-many pieces stand on each of the eight rays from its square (the enemy king left out,
-so the square it leaves blocks nothing); a king arriving on a square works out the
-same eight for that square as it is saved; an enemy slider on a line with the king
-attacks it exactly when its count along that line equals the king's — nothing between
-them — and knights, pawns and the other king attack by geometry alone. That is one
-check, `attackers.count == 0`, over a relationship whose `where` compares those
-counts. The script is the viewer's convenience, done where the pieces already are;
-the rule is the model's.
+on its own, and stores nothing for it. One relationship on a piece lists the enemy
+pieces that attack its square: knights, pawns and the other king by geometry, and a
+slider when it is on a line with the square and *nothing stands between* — which is a
+second relationship, the pieces between the two, counted inside the first. So the rule
+is one check, `attackers.count == 0`, asked of the pieces as they are at the moment the
+king is dropped. The script is the viewer's convenience, done where the pieces already
+are; the rule is the model's.
