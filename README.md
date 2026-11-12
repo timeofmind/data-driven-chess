@@ -55,9 +55,10 @@ trigger takes the pawn that passed.
 The coach: every `Move` flows to an `llm` listener (`routing/chess.yaml`: Claude, the key
 from `CHESS_CLAUDE_KEY` in the server-only `/etc/chess/env`) with `llm/move-comment.yaml`,
 which writes one line back onto the move (`ai_response`, `record_prefix: ai_`); the game
-page's commentary list shows them by push. The page's own template, `theme/game.html`,
-lays the desktop out in three columns — details, board, commentary — and `chess.css` hides
-the commentary on a phone.
+page's `coach` view — a one-row list, drawn as a box by `chess.css` — shows the line on the
+viewer's latest move, each answer replacing the last by push. The page's own template,
+`theme/game.html`, lays the desktop out in three columns — details, board, the coach's box
+and the PGN — and `chess.css` hides the coach on a phone.
 See `docs/how-chess-works.md` for the player's view.
 
 **Nothing of a game is written to a database.** `routing/chess.yaml` keeps games and

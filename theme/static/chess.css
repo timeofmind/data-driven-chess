@@ -33,8 +33,8 @@
 .chess-clock .flag { color: #c62828; font-weight: 600; font-size: .9rem; }
 
 /* The game page (theme/game.html): three columns on a wide screen — details left,
-   board centre, commentary right — using the width a desktop has; the board as
-   large as the height allows. One column on a phone, and no commentary there. */
+   board centre, the coach's box right — using the width a desktop has; the board as
+   large as the height allows. One column on a phone, and no coach there. */
 body:has(.game-layout) main.wrap { max-width: 1800px; }
 .game-layout { display: grid; grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr) minmax(18rem, 26rem); gap: 1.25rem; align-items: start; }
 .game-centre { min-width: 0; display: flex; flex-direction: column; align-items: center; }
@@ -44,6 +44,12 @@ body:has(.game-layout) main.wrap { max-width: 1800px; }
 .game-side .view { margin-top: 0; }
 .game-side .view + .view { margin-top: 1rem; }
 .game-right .list td:nth-child(2) { white-space: normal; }
+/* The coach's box: one bordered box holding the line on the viewer's latest move
+   (a one-row list; the table's dressing is taken off). */
+.view[data-view="coach"] .table-wrap { border: 2px solid var(--accent, #2a6ebb); border-radius: var(--radius, 8px); padding: .9rem 1.1rem; background: var(--accent-soft, transparent); }
+.view[data-view="coach"] thead { display: none; }
+.view[data-view="coach"] td { border: 0; padding: 0; white-space: normal; font-size: 1.1rem; line-height: 1.45; font-style: italic; }
+.view[data-view="coach"] .empty { padding: .9rem 1.1rem; border: 2px solid var(--line); text-align: left; color: var(--muted); }
 .game-below { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-top: 1.25rem; }
 @media (max-width: 1100px) {
   .game-layout { grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem); }
@@ -51,6 +57,6 @@ body:has(.game-layout) main.wrap { max-width: 1800px; }
 }
 @media (max-width: 760px) {
   .game-layout, .game-below { display: block; }
-  .game-layout .view[data-view="comments"] { display: none; }   /* no coach on a phone */
+  .game-layout .view[data-view="coach"] { display: none; }      /* no coach on a phone */
   .game-centre .grid-view .grid, .game-centre .chess-clocks { max-width: 100%; }
 }
