@@ -81,19 +81,18 @@ and the pawn that passed is taken — the usual diagonal pawn move onto an empty
 which the rules accept only then. The board shows the square with a capture ring when
 you lift the pawn, and the PGN writes it as a capture (exd6).
 
-**Winning.** When the side to move is in check and has no move that ends it, the board
-declares checkmate and names the winner; with no move but not in check, stalemate. The
-board works this out from the pieces it shows, the same way the server judges each
-move, and reports it to the server as its verdict. A game played from one browser ends
-on that report; a remote game ends once both players' boards have reported the same —
-or on the winner's report of checkmate alone, which the server checks against the
-position: the losing side is to move and in check, and every square beside its king is
-off the board, one of its own pieces or attacked. So a losing side that closes its board
-cannot keep the game open. (The server does not look for a capture of the checking piece
-or a block of the check; the board never reports a mate that isn't one, so only a report
-made around the board could end a game that way.) Stalemate, a draw,
-ends a remote game when both boards report it. The game then shows its result and how
-it ended, the PGN its score, and no more moves are accepted.
+**Winning.** The server ends the game; the board only tells it when. When the side to
+move is in check and has no move that ends it, the winner's board claims checkmate, and
+the server checks the claim against the position: the losing side is to move and in
+check, and every square beside its king is off the board, one of its own pieces or
+attacked. When that holds, the game ends on the claim alone, so a losing side that
+closes its board cannot keep the game open. (The server does not look for a capture of
+the checking piece or a block of the check; the board never claims a mate that isn't
+one, so only a claim made around the board could end a game that way.) With no move
+left but not in check, the board reports stalemate, a draw, which the server takes only
+once both players' boards have reported it; a game played from one browser ends on its
+one report. The game then shows its result and how it ended, the PGN its score, and no
+more moves are accepted.
 
 **A draw.** *Offer a draw* under the board makes an offer the other player sees at once;
 they accept by offering the same, and the game is drawn. Open your offer in the list to

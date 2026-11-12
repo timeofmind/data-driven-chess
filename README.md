@@ -39,12 +39,13 @@ authentication) with the `password-reset` template — a `MailTemplate` record i
 made one at /mail-templates, else `mail/password-reset.yaml` — and the handler's /forgot
 and /reset pages do the rest (`model/30-mail.yaml`).
 
-Checkmate and stalemate are found by the board's script, which tries every move the side to
-move has (the server only refuses them one by one), and reported as a `Verdict`: a game played
-from one browser ends on one, a remote game once both players' verdicts agree — or on the
-winner's claim of checkmate alone, which the model checks against the position (the losing
-king in check with every square beside it taken or attacked); a draw offer is
-a verdict too, accepted by the other player making the same. Castling is looked at only when a
+A game ends on a `Verdict`, and the server decides it: a claim of checkmate from the
+winner's board is checked by the model against the position (the losing side to move and
+in check, every square beside its king off the board, its own or attacked) and ends the game
+on its own; stalemate is a draw the model takes once both players' verdicts agree, or on one
+verdict for a game played from one browser; a draw offer is a verdict too, accepted by the
+other player making the same. The board's script finds the moment to report by trying every
+move the side to move has, but its report is a claim, not the ending. Castling is looked at only when a
 king moves two squares, and a side's castle is recorded on the game. The clock ends a game by
 itself: a timed trigger on the game (`at`, framework v0.32.0) fires the moment the side to move
 runs out by the server's clock, fired by the cluster's leader; the browsers' clocks count down

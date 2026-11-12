@@ -9,8 +9,10 @@
 // dropped on a red square: the drop is cancelled before anything is posted.
 // And the clocks: two faces above the board counting down in the browser
 // from what the server last recorded (the game's record, read through the
-// API after every change of the board). Nothing here is posted — the server
-// never hears from this script.
+// API after every change of the board). The one thing this script posts is
+// a verdict (report below), a claim the server decides on: it ends a game
+// on a claim of checkmate the position bears out, on a stalemate both
+// boards report, or on its own clock — never on this script's word.
 (function () {
   "use strict";
   var KIND = { "♔": "king", "♕": "queen", "♖": "rook", "♗": "bishop", "♘": "knight", "♙": "pawn",
@@ -258,9 +260,10 @@
     }
     // checks: a king on a square the other side attacks — and, for the side
     // to move, whether any move is left: none in check is checkmate, none
-    // otherwise stalemate. The model never declares these (it only refuses
-    // every move); the board says so. The redraw resets cell classes, so
-    // this runs after every change.
+    // otherwise stalemate. The model does not search for these; the board
+    // says so here and claims it in a verdict, which the server checks
+    // (report below). The redraw resets cell classes, so this runs after
+    // every change.
     // toMove: whose move it is — from the board's intro, redrawn with the
     // board (the record may lag a push behind), else from the record.
     function toMove() {
