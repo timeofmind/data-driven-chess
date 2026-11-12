@@ -16,6 +16,7 @@
 #   CHESS_TOKEN_KEY    file holding the key that signs fetch tokens (the same on every node)
 #   CHESS_BASE_URL     the public URL, default https://holmgren.ca/chess
 #   CHESS_SMTP_HOST, CHESS_SMTP_PORT, CHESS_MAIL_FROM   outgoing mail (routing/chess.yaml): the local exim4, 127.0.0.1:25
+#   CHESS_CLAUDE_KEY   the coach's Anthropic API key (routing/chess.yaml), from /etc/chess/env on the server
 {
 	admin off
 	auto_https off

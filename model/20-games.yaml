@@ -35,6 +35,8 @@
 # king-safety rule doesn't see that pawn leave, so the rare uncovered attack
 # along the rank is not caught — the one approximation left.
 enums:
+  # The coach's comment on a move (an llm listener writes it; see routing/chess.yaml).
+  AiStatus: {values: [queued, answered, failed], default: queued}
   Colour: {values: [white, black]}
   Kind: {values: [king, queen, rook, bishop, knight, pawn]}
   Status: {values: [playing, finished]}
@@ -456,12 +458,17 @@ classes:
       - {name: at_ms, type: integer, description: "When the move reached the server, in milliseconds since 1970"}
       - {name: took_ms, type: integer, label: "Took (ms)", description: "Time from the previous move (or the start) to this one reaching the server, in milliseconds"}
       - {name: left_ms, type: integer, label: "Clock (ms)", description: "What the mover had left on its clock after this move, in milliseconds; blank without a clock"}
+      # The coach: the move flows to an llm listener (routing/chess.yaml, template
+      # llm/move-comment.yaml), which writes its one-line comment back here.
+      - {name: ai_status, type: enum, enum: AiStatus, default: queued, read_only: true, label: "Coach"}
+      - {name: ai_response, type: text, read_only: true, label: "Comment"}
+      - {name: ai_error, type: text, read_only: true}
     computed:
       - {name: took, label: "Took", expr: "round(took_ms / 1000, 1) + ' s'", when: "took_ms != null"}
       # The clock as a clock reads it, m:ss (nothing below zero).
       - {name: left, label: "Clock", expr: "duration(max(left_ms, 0) / 1000)", when: "left_ms != null"}
     relationships:
-      belongs_to: [{target: Game, via: game_id, on_delete: cascade}]
+      belongs_to: [{target: Game, via: game_id, name: game, on_delete: cascade}]
   # A player's report that the game has ended — checkmate or stalemate — as
   # their board found it (the server only refuses moves; it never searches
   # for a mate). A game played from one browser ends on one report; a remote

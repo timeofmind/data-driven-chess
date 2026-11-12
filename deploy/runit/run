@@ -16,6 +16,8 @@ export CHESS_SMTP_PORT=${CHESS_SMTP_PORT:-25}
 export CHESS_MAIL_FROM=${CHESS_MAIL_FROM:-chess@holmgren.ca}
 # Admins: login emails, space-separated, in a server-only file (not in this repository).
 export CHESS_ADMINS="$(cat /etc/chess/admins 2>/dev/null)"
+# Secrets (the coach's CHESS_CLAUDE_KEY): a server-only file of export lines, root:chess 640.
+[ -r /etc/chess/env ] && . /etc/chess/env
 export HOME=/var/lib/chess
 export XDG_DATA_HOME=/var/lib/chess/caddy/$CHESS_NODE
 export XDG_CONFIG_HOME=/var/lib/chess/caddy/$CHESS_NODE

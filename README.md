@@ -52,6 +52,12 @@ runs out by the server's clock, fired by the cluster's leader; the browsers' clo
 to that pushed moment and take the server's word. En passant: the game remembers the square a
 pawn's two-square step skipped for one move, the pawn beside it may capture onto it, and a
 trigger takes the pawn that passed.
+The coach: every `Move` flows to an `llm` listener (`routing/chess.yaml`: Claude, the key
+from `CHESS_CLAUDE_KEY` in the server-only `/etc/chess/env`) with `llm/move-comment.yaml`,
+which writes one line back onto the move (`ai_response`, `record_prefix: ai_`); the game
+page's commentary list shows them by push. The page's own template, `theme/game.html`,
+lays the desktop out in three columns — details, board, commentary — and `chess.css` hides
+the commentary on a phone.
 See `docs/how-chess-works.md` for the player's view.
 
 **Nothing of a game is written to a database.** `routing/chess.yaml` keeps games and

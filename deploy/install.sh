@@ -5,8 +5,8 @@
 # Idempotent. Does NOT touch nginx.
 set -eu
 CADDY_MODULE=github.com/timeofmind/data-driven-framework-caddy2
-CADDY_VERSION=${CADDY_VERSION:-v0.27.1}
-FRAMEWORK_VERSION=${FRAMEWORK_VERSION:-v0.32.1}
+CADDY_VERSION=${CADDY_VERSION:-v0.29.2}
+FRAMEWORK_VERSION=${FRAMEWORK_VERSION:-v0.34.3}
 BUILD_USER=${BUILD_USER:-aaron}
 
 # 1. service user (no login, no home)
@@ -21,11 +21,13 @@ rm -rf "$tmp"
 # 3. the application and Caddyfile: root-owned, world-readable
 install -d -o root -g root -m 755 /etc/chess
 rm -rf /etc/chess/app.new && mkdir /etc/chess/app.new
-cp -r app.yaml model pages routing theme mail /etc/chess/app.new/
+cp -r app.yaml model pages routing theme mail llm /etc/chess/app.new/
 chown -R root:root /etc/chess/app.new && chmod -R u=rwX,go=rX /etc/chess/app.new
 rm -rf /etc/chess/app && mv /etc/chess/app.new /etc/chess/app
 install -o root -g root -m 644 Caddyfile /etc/chess/Caddyfile
 [ -f /etc/chess/admins ] || install -o root -g root -m 644 /dev/null /etc/chess/admins
+# Secrets the nodes need (export CHESS_CLAUDE_KEY=…): a server-only file the run script sources.
+[ -f /etc/chess/env ] || { install -o root -g chess -m 640 /dev/null /etc/chess/env; echo "note: /etc/chess/env is empty; the coach needs export CHESS_CLAUDE_KEY=... in it" >&2; }
 
 # 4. data (the players' SQLite database, the change logs), logs, the token key, the cluster's certificates
 install -d -o chess -g chess -m 750 /var/lib/chess /var/lib/chess/changelog /var/lib/chess/caddy
@@ -52,6 +54,7 @@ for n in n1 n2; do
   sed "s|/var/log/runit/chess|/var/log/runit/$svc|" deploy/runit/log/run > /etc/sv/$svc/log/run; chmod 755 /etc/sv/$svc/log/run
   # validate exactly as the service runs: its user and the environment from the run script
   ( eval "$(grep '^export ' /etc/sv/$svc/run)"
+    [ -r /etc/chess/env ] && . /etc/chess/env
     exec chpst -u chess:chess /usr/local/bin/caddy-chess validate --config /etc/chess/Caddyfile --adapter caddyfile ) >/dev/null 2>&1 || {
     echo "config does not validate for $n; services not (re)started" >&2; exit 1; }
   port=$((port + 1)); cport=$((cport + 1))

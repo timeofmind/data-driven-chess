@@ -31,3 +31,26 @@
 .chess-clock.low .time { color: #c62828; }
 .chess-clock.out { border-color: #c62828; background: #f8d7d7; }
 .chess-clock .flag { color: #c62828; font-weight: 600; font-size: .9rem; }
+
+/* The game page (theme/game.html): three columns on a wide screen — details left,
+   board centre, commentary right — using the width a desktop has; the board as
+   large as the height allows. One column on a phone, and no commentary there. */
+body:has(.game-layout) main.wrap { max-width: 1800px; }
+.game-layout { display: grid; grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr) minmax(18rem, 26rem); gap: 1.25rem; align-items: start; }
+.game-centre { min-width: 0; display: flex; flex-direction: column; align-items: center; }
+.game-centre .view.grid-view, .game-centre .chess-clocks, .game-centre .chess-note { width: 100%; }
+.game-centre .grid-view .grid { max-width: min(100%, calc(100vh - 14rem)); margin: 0 auto; }
+.game-centre .chess-clocks { max-width: min(100%, calc(100vh - 14rem)); margin-inline: auto; }
+.game-side .view { margin-top: 0; }
+.game-side .view + .view { margin-top: 1rem; }
+.game-right .list td:nth-child(2) { white-space: normal; }
+.game-below { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-top: 1.25rem; }
+@media (max-width: 1100px) {
+  .game-layout { grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem); }
+  .game-right { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .game-layout, .game-below { display: block; }
+  .game-layout .view[data-view="comments"] { display: none; }   /* no coach on a phone */
+  .game-centre .grid-view .grid, .game-centre .chess-clocks { max-width: 100%; }
+}

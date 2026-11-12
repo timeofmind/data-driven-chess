@@ -9,12 +9,17 @@ listeners:
   # trusts localhost — no authentication, no TLS); templates are MailTemplate
   # records by name, else mail/<name>.yaml in the app.
   mail:  {type: smtp, host_env: CHESS_SMTP_HOST, port_env: CHESS_SMTP_PORT, starttls: off, from_env: CHESS_MAIL_FROM, template_class: MailTemplate, templates: mail}
+  # The coach: every move is sent to Claude (the key from the environment, never
+  # here) with llm/move-comment.yaml, and the one-line answer is written back onto
+  # the move as ai_response (record_prefix ai_). The cluster's leader asks; start: end
+  # keeps it from commenting on every move made before it arrived.
+  coach: {type: llm, start: end, providers: claude, claude_model: claude-haiku-5-5, claude_api_key_env: CHESS_CLAUDE_KEY, max_tokens: 60, timeout: 30s, retry_for: 5m, templates: llm, record_prefix: ai_}
 routes:
   default: {source: db, flows_to: [db]}
   # A password reset is saved and sent (the leader sends; followers don't).
   PasswordReset: {source: db, flows_to: [db, {listener: mail, template: password-reset}]}
   Game:    {source: board, flows_to: [board]}
   Piece:   {source: board, flows_to: [board]}
-  Move:    {source: board, flows_to: [board]}
+  Move:    {source: board, flows_to: [board, {listener: coach, template: move-comment}]}
   # Verdicts belong to a game, so they live where the games do.
   Verdict: {source: board, flows_to: [board]}

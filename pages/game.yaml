@@ -2,8 +2,13 @@ path: /games/{id}
 title: "{record._title}"
 record: {class: Game, id: id}
 default_for: Game
+# The theme's game.html lays the views out: the game's details on the left, the
+# board in the middle, the coach's commentary on the right (desktop); one column
+# on a phone, without the commentary.
+template: game.html
 interface_views:
   - type: detail
+    name: info
     fields: [white_id, black_id, mode, time_control, turn, check, white_castled, black_castled, status, result, ended_by, ended_move, move_count, last_move, created_at]
     # Pushed to the browser as the game changes: the clocks read these fields from the push
     # (due_ms: when the side to move runs out, by the server's clock — the browsers count down to it).
@@ -57,12 +62,23 @@ interface_views:
     empty: "No move yet."
     live: push
   - type: list
+    name: comments
+    title: "The coach says"
+    intro: "A one-line comment on each move, from Claude, as the server hears the answer."
+    data: {class: Move, where: "game_id == record.id and ai_status == 'answered'", order: "number desc"}
+    fields: [san, ai_response]
+    page_size: 12
+    empty: "The coach is watching. A comment follows each move."
+    live: push
+  - type: list
+    name: taken
     title: Taken
     data: {class: Piece, where: "game_id == record.id and captured == true", order: "id asc"}
     fields: [colour, kind]
     empty: "No piece has been taken yet."
     live: push
   - type: text
+    name: how
     title: How this works
     items:
       - "Each piece is a record with a square. Dragging it writes that square — nothing else."
@@ -74,3 +90,4 @@ interface_views:
       - "Every change to the game is pushed to this page as it happens (the page keeps an event stream open): the other side's move lands on your board the moment the server has it, and the clocks take their time from the push."
       - "The game lives in memory on every node, fed by the change log — nothing of it is written to a database. The players are."
       - "En passant: the game remembers the square a pawn's two-square step skipped, for the next move only; a pawn beside it may capture onto that square, and a trigger takes the pawn that passed."
+      - "The coach: each move flows to an llm listener as well as the board, which asks Claude for one line about it (the game's PGN and the move) and writes the answer back onto the move; the commentary list is pushed to the page as the answers arrive. The server plays no part in what is said."

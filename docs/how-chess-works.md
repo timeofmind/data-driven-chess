@@ -101,6 +101,14 @@ withdraw it. From one browser, *Agree a draw* ends the game as a draw at once.
 **Your games.** Your name at the top opens your page, with every game you are in;
 *Challenges* lists those made to you, waiting, and your own with their state.
 
+**The coach.** On a wide screen the game's details sit to the left of the board and a
+commentary to its right: one line on each move, from Claude, arriving a moment after the
+move is made. The server sends every recorded move, with the game so far, to a language
+model through the framework's `llm` listener and writes the answer back onto the move; the
+list is pushed to your page as the answers land. The coach sees the moves, never your
+board, and nothing it says changes the game. On a phone the page is one column and the
+commentary is left out.
+
 ## Why it is built this way
 
 Nothing here is programmed. The board is the framework's *grid* interface view, the
