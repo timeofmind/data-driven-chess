@@ -275,8 +275,8 @@
     var board = dd.view("board");
     if (!board) return;
     draws(board);
-    var script = document.querySelector('script[src$="/static/chess.js"]');
-    apiBase = (script ? script.getAttribute("src").replace(/\/static\/chess\.js$/, "") : "") + "/api/v1";
+    var script = document.querySelector('script[src*="/static/chess.js"]'); // the src may carry ?v=
+    apiBase = (script ? script.getAttribute("src").replace(/\/static\/chess\.js(\?.*)?$/, "") : "") + "/api/v1";
     var note = document.createElement("p");
     note.className = "chess-note";
     note.hidden = true;
