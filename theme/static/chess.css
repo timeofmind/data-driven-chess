@@ -53,8 +53,7 @@ body:has(.game-layout) main.wrap { max-width: 1800px; }
 .view[data-view="coach"] thead { display: none; }
 .view[data-view="coach"] td { border: 0; padding: 0; white-space: normal; font-size: 1.1rem; line-height: 1.45; font-style: italic; }
 .view[data-view="coach"] .empty { padding: .9rem 1.1rem; border: 2px solid var(--line); text-align: left; color: var(--muted); }
-/* Messages: the players' lines, the plain list look; the buttons under it. */
-.view[data-view="offers"] td:last-child { color: var(--muted); font-size: .85rem; }
+/* Messages (the former Draw offers list, moved to the right): the framework's plain list look, untouched; the buttons under it. */
 .game-buttons { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: .8rem; }
 .game-buttons .view { margin-top: 0; }
 .game-buttons form { margin: 0; }
