@@ -62,11 +62,10 @@ body:has(.game-layout) main.wrap { max-width: 1800px; }
 .game-right .view, .game-right .game-buttons { flex: 0 0 auto; }
 /* Messages (the former Draw offers list): no heading, no table dressing — small light
    lines, the sender a faint label, a faint "messages" until the first one. */
+.view[data-view="pgn"] { --tail-height: 5.5rem; }   /* the Moves box: the last moves that fit */
 .view[data-view="offers"] { flex: 1 1 0 !important; min-height: 6rem; display: flex; flex-direction: column; margin: 0; }
 .view[data-view="offers"] thead, .view[data-view="offers"] .pager { display: none; }
-.view[data-view="offers"] .table-wrap, .view[data-view="offers"] .empty { flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
-.view[data-view="offers"] .empty { justify-content: center; }
-.view[data-view="offers"] table { flex: 0 0 auto; }
+.view[data-view="offers"] .table-wrap, .view[data-view="offers"] .empty { height: auto; flex: 1 1 auto; min-height: 0; } /* style tail, but filling the column */
 .view[data-view="offers"] .table-wrap { border: 1px solid var(--line); border-radius: var(--radius); padding: .45rem .8rem; background: var(--surface); }
 .view[data-view="offers"] td { border: 0; padding: .2rem 0; font-size: .85rem; font-weight: 300; line-height: 1.4; white-space: normal; }
 .view[data-view="offers"] td:first-child { width: 1%; white-space: nowrap; padding-right: .7rem; color: var(--muted); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; }
@@ -88,7 +87,7 @@ body:has(.game-layout) main.wrap { max-width: 1800px; }
   .game-layout, .game-below { display: block; }
   .game-right { position: static; max-height: none; display: block; }
   .view[data-view="offers"] { display: block; min-height: 0; }
-  .view[data-view="offers"] .table-wrap, .view[data-view="offers"] .empty { height: 10rem; }
+  .view[data-view="offers"] .table-wrap, .view[data-view="offers"] .empty { height: 10rem; flex: none; }
   .game-layout .view[data-view="coach"] { display: none; }      /* no coach on a phone */
   .game-centre .grid-view .grid, .game-centre .chess-clocks, .game-centre .chess-note { max-width: 100%; }
 }

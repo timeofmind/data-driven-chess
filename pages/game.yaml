@@ -36,6 +36,7 @@ interface_views:
     name: offers
     data: {class: Verdict, where: "game_id == record.id", order: "id asc"}
     fields: [player_id, said]
+    style: tail   # one height, the newest lines on its floor (chess.css lets it fill the column)
     live: push
     empty: "messages"
   - type: form
@@ -60,6 +61,7 @@ interface_views:
     name: pgn
     title: Moves
     text: "{if(record.pgn == null, 'No move yet.', record.pgn)}"
+    style: tail   # a box of one height: the last moves that fit (chess.css sets the height)
     live: push
   - type: list
     name: moves

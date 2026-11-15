@@ -1,6 +1,6 @@
 # Chess — checks. Needs Go (fetches the tools on first use).
-FRAMEWORK := github.com/timeofmind/data-driven-framework-go/cmd/ddframework@v0.47.5
-CADDY     := github.com/timeofmind/data-driven-framework-caddy2/cmd/caddy@v0.42.4
+FRAMEWORK := github.com/timeofmind/data-driven-framework-go/cmd/ddframework@v0.47.6
+CADDY     := github.com/timeofmind/data-driven-framework-caddy2/cmd/caddy@v0.42.5
 MODEL     := $(addprefix --schema ,$(sort $(wildcard model/*.yaml)))
 PAGES     := $(addprefix --pages ,$(sort $(wildcard pages/*.yaml)))
 TMP       := $(shell mktemp -d)
