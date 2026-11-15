@@ -47,19 +47,13 @@ body:has(.game-layout) main.wrap { max-width: 1800px; }
 .game-side .view { margin-top: 0; }
 .game-side .view + .view { margin-top: 1rem; }
 .game-right .list td:nth-child(2) { white-space: normal; }
-/* The Messages box (theme/game.html): one bordered card on the right holding the
-   coach's line (italic, one row), the players' lines (their verdicts, one per row,
-   no table dressing) and the draw button — red when it accepts an offer. */
-.game-messages { border: 2px solid var(--accent, #2a6ebb); background: var(--accent-soft, transparent); padding: .9rem 1.1rem; }
-.game-messages h2 { margin: 0 0 .6rem; }
-.game-messages .view { margin-top: 0; }
-.game-messages .view + .view { margin-top: .8rem; }
-.game-messages .table-wrap { border: 0; background: none; }
-.game-messages thead { display: none; }
-.game-messages td { border: 0; padding: .15rem 0; white-space: normal; vertical-align: baseline; }
-.game-messages td + td { padding-left: .5rem; }
-.view[data-view="coach"] td { font-size: 1.1rem; line-height: 1.45; font-style: italic; }
-.game-messages .empty { padding: .3rem 0; border: 0; text-align: left; color: var(--muted); background: none; }
+/* The coach's box: one bordered box holding the line on the viewer's latest move
+   (a one-row list; the table's dressing is taken off). */
+.view[data-view="coach"] .table-wrap { border: 2px solid var(--accent, #2a6ebb); border-radius: var(--radius, 8px); padding: .9rem 1.1rem; background: var(--accent-soft, transparent); }
+.view[data-view="coach"] thead { display: none; }
+.view[data-view="coach"] td { border: 0; padding: 0; white-space: normal; font-size: 1.1rem; line-height: 1.45; font-style: italic; }
+.view[data-view="coach"] .empty { padding: .9rem 1.1rem; border: 2px solid var(--line); text-align: left; color: var(--muted); }
+/* Messages: the players' lines, the plain list look; the buttons under it. */
 .view[data-view="offers"] td:last-child { color: var(--muted); font-size: .85rem; }
 .game-buttons { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: .8rem; }
 .game-buttons .view { margin-top: 0; }

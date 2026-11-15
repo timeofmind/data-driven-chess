@@ -28,13 +28,14 @@ interface_views:
         colour_by: colour
         drag: true
         link: {page: game, id: record.id}
-  # Messages (theme/game.html boxes these with the coach's line): what the players
+  # Messages, its own box on the right (theme/game.html), apart from the coach's: what the players
   # said to each other by their verdicts — a draw offered, a mate claimed — and the one
   # draw button: Offer Draw, or Accept Draw once the other side has offered (accepting
   # is offering the same; the game is drawn on the second) beside Resign. A player who has
   # offered sees no draw button until the offer is withdrawn (its line opens it) or answered.
   - type: list
     name: offers
+    title: Messages
     data: {class: Verdict, where: "game_id == record.id", order: "id asc"}
     fields: [player_id, said, created_at]
     live: push
@@ -75,6 +76,7 @@ interface_views:
   # by push. chess.css draws the box.
   - type: list
     name: coach
+    title: "The coach says"
     data: {class: Move, where: "game_id == record.id and ai_status == 'answered' and (record.mode != 'remote' or viewer == null or (viewer.id != record.white_id and viewer.id != record.black_id) or colour == if(viewer.id == record.white_id, 'white', 'black'))", order: "number desc"}
     fields: [ai_response]
     page_size: 1
