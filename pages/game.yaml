@@ -28,23 +28,24 @@ interface_views:
         colour_by: colour
         drag: true
         link: {page: game, id: record.id}
+  # Messages (theme/game.html boxes these with the coach's line): what the players
+  # said to each other by their verdicts — a draw offered, a mate claimed — and the one
+  # draw button: Offer Draw, or Accept Draw once the other side has offered (accepting
+  # is offering the same; the game is drawn on the second). A player who has offered
+  # sees no button until the offer is withdrawn (its line opens it) or answered.
   - type: list
     name: offers
-    title: "Draw offers"
-    data: {class: Verdict, where: "game_id == record.id and ended_by == 'agreed'", order: "id asc"}
-    fields: [player_id, created_at]
+    data: {class: Verdict, where: "game_id == record.id", order: "id asc"}
+    fields: [player_id, said, created_at]
     live: push
-    when: "record.status == 'playing'"
-    empty: "No draw offered."
+    empty: "Nothing said yet."
   - type: form
     name: offer
-    title: "{if(record.mode == 'remote', 'Offer or accept a draw', 'Agree a draw')}"
     creates: Verdict
-    intro: "{if(record.mode == 'remote', 'Your opponent sees the offer at once; the game is drawn when they accept it by offering the same. Open your offer above to withdraw it.', 'Both of you agree: the game is drawn.')}"
-    when: "viewer != null and record.status == 'playing' and (viewer.id == record.white_id or (record.mode == 'remote' and viewer.id == record.black_id))"
+    when: "viewer != null and record.status == 'playing' and (viewer.id == record.white_id or (record.mode == 'remote' and viewer.id == record.black_id)) and if(viewer.id == record.white_id, record.white_offers.count, record.black_offers.count) == 0"
     fields: []
     set: {game_id: record.id, result: "'draw'", ended_by: "'agreed'"}
-    submit: "{if(record.mode == 'remote', 'Offer a draw', 'Agree a draw')}"
+    submit: "{if(record.mode == 'remote' and if(viewer.id == record.white_id, record.black_offers.count, record.white_offers.count) > 0, 'Accept Draw', 'Offer Draw')}"
     then: {page: game, id: record.id}
   - type: text
     name: pgn
@@ -64,7 +65,6 @@ interface_views:
   # by push. chess.css draws the box.
   - type: list
     name: coach
-    title: "The coach says"
     data: {class: Move, where: "game_id == record.id and ai_status == 'answered' and (record.mode != 'remote' or viewer == null or (viewer.id != record.white_id and viewer.id != record.black_id) or colour == if(viewer.id == record.white_id, 'white', 'black'))", order: "number desc"}
     fields: [ai_response]
     page_size: 1

@@ -167,6 +167,10 @@ classes:
         - {target: Piece, via: game_id, name: pieces}
         - {target: Move, via: game_id, name: moves}
         - {target: Verdict, via: game_id, name: verdicts}
+        # Each side's standing draw offer (at most one: a verdict is unique per player and ending),
+        # for the page's one button: Offer Draw, or Accept Draw once the other side has offered.
+        - {target: Verdict, via: game_id, name: white_offers, where: "ended_by == 'agreed' and player_id == self.white_id"}
+        - {target: Verdict, via: game_id, name: black_offers, where: "ended_by == 'agreed' and player_id == self.black_id"}
     triggers:
       # The clock is the server's: when the side to move has used what it had
       # (its starting time until its first move, plus the increment) since the
@@ -494,6 +498,8 @@ classes:
       - {name: loser, type: enum, enum: Colour, read_only: true, default_expr: "if(result == 'white_wins', 'black', if(result == 'black_wins', 'white', null))"}
       - {name: lk_file, type: integer, read_only: true, default_expr: "if(result == 'white_wins', game.black_king_file, if(result == 'black_wins', game.white_king_file, null))"}
       - {name: lk_rank, type: integer, read_only: true, default_expr: "if(result == 'white_wins', game.black_king_rank, if(result == 'black_wins', game.white_king_rank, null))"}
+      # The verdict as a line in the game's Messages: what the player said by making it.
+      - {name: said, type: text, read_only: true, label: "Says", default_expr: "if(ended_by == 'agreed', 'offers a draw', if(ended_by == 'checkmate', 'claims checkmate', if(ended_by == 'stalemate', 'reports stalemate', 'reports the end of the game')))"}
     relationships:
       belongs_to:
         # link: readable — black's account may name a game white's account owns (the check below keeps it to the players).

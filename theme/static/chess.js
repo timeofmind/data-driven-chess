@@ -244,9 +244,37 @@
     sync();
   }
 
+  // The one draw button: the server labels it Offer Draw, or Accept Draw when the
+  // other side's offer stands; a push of a Verdict while the page is open relabels
+  // it. The viewer's side is the colour of the pieces they may drag (a remote game);
+  // from one browser both move, and the button only ever offers.
+  function draws(board) {
+    var btn = document.querySelector('.view[data-view="offer"] button[type="submit"]');
+    if (!btn) return;
+    function paint() { btn.classList.toggle("accept", /accept/i.test(btn.textContent)); }
+    paint();
+    function mine() {
+      var seen = {};
+      board.rows().forEach(function (r) { if (r.draggable && r.fields && r.fields.colour) seen[r.fields.colour] = true; });
+      var k = Object.keys(seen);
+      return k.length === 1 ? k[0] : null;
+    }
+    document.addEventListener("dd:push", function (e) {
+      var n = e.detail;
+      if (!n || n.class !== "Verdict" || !record || !n.fields || n.fields.game_id != record.id || n.fields.ended_by !== "agreed") return;
+      var me = mine();
+      if (!me) return;
+      var other = record[(me === "white" ? "black" : "white") + "_id"];
+      if (n.fields.player_id != other) return;
+      btn.textContent = n.kind === "delete" ? "Offer Draw" : "Accept Draw";
+      paint();
+    });
+  }
+
   function start() {
     var board = dd.view("board");
     if (!board) return;
+    draws(board);
     var script = document.querySelector('script[src$="/static/chess.js"]');
     apiBase = (script ? script.getAttribute("src").replace(/\/static\/chess\.js$/, "") : "") + "/api/v1";
     var note = document.createElement("p");
