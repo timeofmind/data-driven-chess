@@ -38,7 +38,7 @@
    and the board takes the width left to it, up to what the viewport's height allows
    with the clocks above it. One column on a phone, and no coach there. */
 body:has(.game-layout) main.wrap { max-width: 1800px; }
-.game-layout { display: grid; grid-template-columns: minmax(13rem, 17rem) minmax(0, 1fr) minmax(15rem, 21rem); gap: 1.25rem; align-items: start; }
+.game-layout { display: grid; grid-template-columns: minmax(13rem, 17rem) minmax(0, 1fr) minmax(18rem, 26rem); gap: 1.25rem; align-items: start; }
 .game-centre { min-width: 0; display: flex; flex-direction: column; align-items: center; }
 .game-centre .view.grid-view { width: 100%; margin-top: 0; }
 .game-centre .grid-view .card-head, .game-centre .grid-view > p.muted, .game-centre .grid-hint { display: none; }
@@ -49,21 +49,31 @@ body:has(.game-layout) main.wrap { max-width: 1800px; }
 .game-right .list td:nth-child(2) { white-space: normal; }
 /* The coach's box: one bordered box holding the line on the viewer's latest move
    (a one-row list; the table's dressing is taken off). */
+.view[data-view="coach"] .table-wrap, .view[data-view="coach"] .empty { height: 8.5rem; overflow-y: auto; box-sizing: border-box; } /* a fixed height: what follows stays put */
 .view[data-view="coach"] .table-wrap { border: 2px solid var(--accent, #2a6ebb); border-radius: var(--radius, 8px); padding: .9rem 1.1rem; background: var(--accent-soft, transparent); }
 .view[data-view="coach"] thead { display: none; }
 .view[data-view="coach"] td { border: 0; padding: 0; white-space: normal; font-size: 1.1rem; line-height: 1.45; font-style: italic; }
 .view[data-view="coach"] .empty { padding: .9rem 1.1rem; border: 2px solid var(--line); text-align: left; color: var(--muted); }
-/* Messages (the former Draw offers list, on the right): no heading, no table dressing —
-   small light lines, the sender a faint label, a faint "messages" until the first one;
-   the buttons under it. */
+/* The right column keeps to the viewport: the coach's box (fixed height), the PGN and the
+   buttons stay where they are, and the messages box takes whatever is left, the same size
+   empty or full. Its rows stand on its floor, newest last; what no longer fits is gone
+   off the top. */
+.game-right { align-self: stretch; position: sticky; top: 0; max-height: calc(100dvh - 6rem); display: flex; flex-direction: column; min-height: 0; }
+.game-right .view, .game-right .game-buttons { flex: 0 0 auto; }
+/* Messages (the former Draw offers list): no heading, no table dressing — small light
+   lines, the sender a faint label, a faint "messages" until the first one. */
+.view[data-view="offers"] { flex: 1 1 0 !important; min-height: 6rem; display: flex; flex-direction: column; margin: 0; }
 .view[data-view="offers"] thead, .view[data-view="offers"] .pager { display: none; }
+.view[data-view="offers"] .table-wrap, .view[data-view="offers"] .empty { flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
+.view[data-view="offers"] .empty { justify-content: center; }
+.view[data-view="offers"] table { flex: 0 0 auto; }
 .view[data-view="offers"] .table-wrap { border: 1px solid var(--line); border-radius: var(--radius); padding: .45rem .8rem; background: var(--surface); }
 .view[data-view="offers"] td { border: 0; padding: .2rem 0; font-size: .85rem; font-weight: 300; line-height: 1.4; white-space: normal; }
 .view[data-view="offers"] td:first-child { width: 1%; white-space: nowrap; padding-right: .7rem; color: var(--muted); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; }
 .view[data-view="offers"] td:first-child a { color: inherit; text-decoration: none; }
 .view[data-view="offers"] td:first-child a.open { opacity: .45; }
 .view[data-view="offers"] .empty { padding: 1.5rem 1rem; color: var(--muted); opacity: .55; font-weight: 300; font-size: .9rem; letter-spacing: .04em; }
-.game-buttons { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; align-items: center; margin-top: .8rem; }
+.game-buttons { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; align-items: center; margin: 0 0 1rem; min-height: 2.6rem; }
 .game-side .game-buttons .view, .game-side .game-buttons .view + .view { margin: 0; }
 .game-buttons form { margin: 0; }
 .view[data-view="resign"] button[type="submit"] { background: transparent; color: #c62828; border: 1px solid #c62828; }
@@ -76,6 +86,9 @@ body:has(.game-layout) main.wrap { max-width: 1800px; }
 }
 @media (max-width: 760px) {
   .game-layout, .game-below { display: block; }
+  .game-right { position: static; max-height: none; display: block; }
+  .view[data-view="offers"] { display: block; min-height: 0; }
+  .view[data-view="offers"] .table-wrap, .view[data-view="offers"] .empty { height: 10rem; }
   .game-layout .view[data-view="coach"] { display: none; }      /* no coach on a phone */
   .game-centre .grid-view .grid, .game-centre .chess-clocks, .game-centre .chess-note { max-width: 100%; }
 }

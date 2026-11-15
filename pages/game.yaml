@@ -13,7 +13,6 @@ interface_views:
     # Pushed to the browser as the game changes: the clocks read these fields from the push
     # (due_ms: when the side to move runs out, by the server's clock — the browsers count down to it).
     live: {push: [turn, check, status, winner, result, ended_by, ended_move, move_count, last_move, pgn, white_ms, black_ms, last_move_ms, due_ms, ep_file, ep_rank]}
-    actions: [{delete: {then: {page: games}}}]
   - type: grid
     name: board
     columns: [a, b, c, d, e, f, g, h]

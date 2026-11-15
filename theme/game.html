@@ -2,9 +2,9 @@
   The game page: on a wide screen three columns — the game's details and the draw
   offers on the left, the board in the middle (chess.js puts the clocks above it and its notes below;
   the board has no heading, legend or text of its own — the details on the left name the game),
-  on the right the coach's box (the line on your latest move), the PGN, then the messages —
-  what the players said by their verdicts (a draw offered, a mate claimed) — with the draw
-  button and Resign under them; below, the moves and the taken pieces. On a phone one column, and no coach (chess.css hides it).
+  on the right the coach's box (the line on your latest move), the PGN, the draw button and Resign
+  (fixed in place), then the messages — what the players said by their verdicts (a draw
+  offered, a mate claimed); below, the moves and the taken pieces. On a phone one column, and no coach (chess.css hides it).
 */}}
 {{define "page"}}{{template "head" .}}{{$p := .Data}}
 <div class="game-layout">
@@ -13,7 +13,8 @@
   <aside class="game-side game-right">
     {{interfaceView . "coach"}}
     {{interfaceView . "pgn"}}
-    {{interfaceView . "offers"}}<div class="game-buttons">{{interfaceView . "offer"}}{{interfaceView . "resign"}}</div>
+    <div class="game-buttons">{{interfaceView . "offer"}}{{interfaceView . "resign"}}</div>
+    {{interfaceView . "offers"}}
   </aside>
 </div>
 <div class="game-below">{{interfaceView . "moves"}}{{interfaceView . "taken"}}</div>

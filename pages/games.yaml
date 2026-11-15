@@ -7,4 +7,5 @@ interface_views:
     filters: [{field: status}]
     page_size: 25
     add: {page: new-challenge, label: "Challenge a player"}
+    actions: [{delete: {}}]   # a Delete link on each game the viewer may delete (the game's own page has none)
     empty: "No games yet. Start one."
