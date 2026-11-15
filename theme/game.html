@@ -1,11 +1,11 @@
 {{/*
   The game page: on a wide screen three columns — the game's details and the draw
-  offers on the left, the board in the middle (chess.js puts the clocks above it),
+  offers on the left, the board in the middle (chess.js puts the clocks above it and its notes below;
+  the board has no heading, legend or text of its own — the details on the left name the game),
   the coach's box (the line on your latest move) and the PGN on the right; below, the
   moves and the taken pieces. On a phone one column, and no coach (chess.css hides it).
 */}}
 {{define "page"}}{{template "head" .}}{{$p := .Data}}
-<div class="page-head"><h1>{{$p.Title}}</h1></div>
 <div class="game-layout">
   <aside class="game-side game-left">{{interfaceView . "info"}}{{interfaceView . "offers"}}{{interfaceView . "offer"}}</aside>
   <div class="game-centre">{{interfaceView . "board"}}</div>

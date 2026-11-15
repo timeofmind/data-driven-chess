@@ -252,7 +252,7 @@
     var note = document.createElement("p");
     note.className = "chess-note";
     note.hidden = true;
-    board.el.insertBefore(note, board.grid());
+    board.el.insertBefore(note, board.grid().nextSibling); // below the board
     board.mark(note);
 
     function clear() {

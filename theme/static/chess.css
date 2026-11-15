@@ -19,13 +19,13 @@
 .grid.headed .cell.unsafe { background-image: radial-gradient(circle, rgba(200, 30, 30, .6) 20%, transparent 23%); }
 .grid.headed .cell.capture.unsafe { background-image: radial-gradient(circle, transparent 62%, rgba(200, 30, 30, .6) 65%); }
 .grid.headed .cell.in-check { box-shadow: inset 0 0 0 4px #c62828; }
-.chess-note { font-weight: 600; color: #c62828; margin: 0 0 .5rem; }
+.chess-note { font-weight: 600; color: #c62828; margin: .5rem 0 0; }
 .chess-note.game-over { font-size: 1.25rem; color: #111; background: #f0d9b5; border: 2px solid #b58863; border-radius: .4rem; padding: .4rem .7rem; }
 
 /* chess.js: the clocks above the board; the side to move is the running one. */
-.chess-clocks { display: flex; gap: .75rem; flex-wrap: wrap; max-width: 38rem; margin: 0 0 .6rem; }
-.chess-clock { flex: 1 1 10rem; display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; padding: .35rem .7rem; border: 2px solid #b58863; border-radius: .4rem; background: #f0d9b5; color: #111; }
-.chess-clock .time { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+.chess-clocks { display: flex; gap: .75rem; flex-wrap: wrap; max-width: 38rem; margin: 0 0 .5rem; }
+.chess-clock { flex: 1 1 10rem; display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; padding: .2rem .7rem; border: 2px solid #b58863; border-radius: .4rem; background: #f0d9b5; color: #111; }
+.chess-clock .time { font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 .chess-clock.running { border-color: #5a7a2a; background: #e4ecc7; }
 .chess-clock.running .time { color: #2f4f10; }
 .chess-clock.low .time { color: #c62828; }
@@ -33,14 +33,17 @@
 .chess-clock .flag { color: #c62828; font-weight: 600; font-size: .9rem; }
 
 /* The game page (theme/game.html): three columns on a wide screen — details left,
-   board centre, the coach's box right — using the width a desktop has; the board as
-   large as the height allows. One column on a phone, and no coach there. */
+   board centre, the coach's box right. The board is the page: nothing is written
+   above it (no heading, legend, intro or drag hint), the side columns are kept narrow,
+   and the board takes the width left to it, up to what the viewport's height allows
+   with the clocks above it. One column on a phone, and no coach there. */
 body:has(.game-layout) main.wrap { max-width: 1800px; }
-.game-layout { display: grid; grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr) minmax(18rem, 26rem); gap: 1.25rem; align-items: start; }
+.game-layout { display: grid; grid-template-columns: minmax(13rem, 17rem) minmax(0, 1fr) minmax(15rem, 21rem); gap: 1.25rem; align-items: start; }
 .game-centre { min-width: 0; display: flex; flex-direction: column; align-items: center; }
-.game-centre .view.grid-view, .game-centre .chess-clocks, .game-centre .chess-note { width: 100%; }
-.game-centre .grid-view .grid { max-width: min(100%, calc(100vh - 14rem)); margin: 0 auto; }
-.game-centre .chess-clocks { max-width: min(100%, calc(100vh - 14rem)); margin-inline: auto; }
+.game-centre .view.grid-view { width: 100%; margin-top: 0; }
+.game-centre .grid-view .card-head, .game-centre .grid-view > p.muted, .game-centre .grid-hint { display: none; }
+.game-centre .grid-view .grid, .game-centre .chess-clocks, .game-centre .chess-note { width: 100%; max-width: min(100%, calc(100dvh - 9rem)); margin-inline: auto; }
+.game-centre .chess-clocks .chess-clock { flex-basis: 8rem; }
 .game-side .view { margin-top: 0; }
 .game-side .view + .view { margin-top: 1rem; }
 .game-right .list td:nth-child(2) { white-space: normal; }
@@ -58,5 +61,5 @@ body:has(.game-layout) main.wrap { max-width: 1800px; }
 @media (max-width: 760px) {
   .game-layout, .game-below { display: block; }
   .game-layout .view[data-view="coach"] { display: none; }      /* no coach on a phone */
-  .game-centre .grid-view .grid, .game-centre .chess-clocks { max-width: 100%; }
+  .game-centre .grid-view .grid, .game-centre .chess-clocks, .game-centre .chess-note { max-width: 100%; }
 }
