@@ -53,7 +53,16 @@ body:has(.game-layout) main.wrap { max-width: 1800px; }
 .view[data-view="coach"] thead { display: none; }
 .view[data-view="coach"] td { border: 0; padding: 0; white-space: normal; font-size: 1.1rem; line-height: 1.45; font-style: italic; }
 .view[data-view="coach"] .empty { padding: .9rem 1.1rem; border: 2px solid var(--line); text-align: left; color: var(--muted); }
-/* Messages (the former Draw offers list, moved to the right): the framework's plain list look, untouched; the buttons under it. */
+/* Messages (the former Draw offers list, on the right): no heading, no table dressing —
+   small light lines, the sender a faint label, a faint "messages" until the first one;
+   the buttons under it. */
+.view[data-view="offers"] thead, .view[data-view="offers"] .pager { display: none; }
+.view[data-view="offers"] .table-wrap { border: 1px solid var(--line); border-radius: var(--radius); padding: .45rem .8rem; background: var(--surface); }
+.view[data-view="offers"] td { border: 0; padding: .2rem 0; font-size: .85rem; font-weight: 300; line-height: 1.4; white-space: normal; }
+.view[data-view="offers"] td:first-child { width: 1%; white-space: nowrap; padding-right: .7rem; color: var(--muted); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; }
+.view[data-view="offers"] td:first-child a { color: inherit; text-decoration: none; }
+.view[data-view="offers"] td:first-child a.open { opacity: .45; }
+.view[data-view="offers"] .empty { padding: 1.5rem 1rem; color: var(--muted); opacity: .55; font-weight: 300; font-size: .9rem; letter-spacing: .04em; }
 .game-buttons { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: .8rem; }
 .game-buttons .view { margin-top: 0; }
 .game-buttons form { margin: 0; }

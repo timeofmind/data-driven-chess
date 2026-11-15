@@ -35,11 +35,10 @@ interface_views:
   # offered sees no draw button until the offer is withdrawn (its line opens it) or answered.
   - type: list
     name: offers
-    title: Messages
     data: {class: Verdict, where: "game_id == record.id", order: "id asc"}
-    fields: [player_id, said, created_at]
+    fields: [player_id, said]
     live: push
-    empty: "Nothing said yet."
+    empty: "messages"
   - type: form
     name: offer
     creates: Verdict
