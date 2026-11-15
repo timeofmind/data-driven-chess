@@ -271,10 +271,25 @@
     });
   }
 
+  // Resign asks twice: the first click only changes the button, the second submits.
+  function resigning() {
+    var btn = document.querySelector('.view[data-view="resign"] button[type="submit"]');
+    if (!btn) return;
+    var label = btn.textContent, timer = 0;
+    btn.addEventListener("click", function (e) {
+      if (btn.classList.contains("sure")) return;
+      e.preventDefault();
+      btn.classList.add("sure");
+      btn.textContent = "Really resign?";
+      timer = setTimeout(function () { btn.classList.remove("sure"); btn.textContent = label; }, 4000);
+    });
+  }
+
   function start() {
     var board = dd.view("board");
     if (!board) return;
     draws(board);
+    resigning();
     var script = document.querySelector('script[src*="/static/chess.js"]'); // the src may carry ?v=
     apiBase = (script ? script.getAttribute("src").replace(/\/static\/chess\.js(\?.*)?$/, "") : "") + "/api/v1";
     var note = document.createElement("p");

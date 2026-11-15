@@ -31,8 +31,8 @@ interface_views:
   # Messages (theme/game.html boxes these with the coach's line): what the players
   # said to each other by their verdicts — a draw offered, a mate claimed — and the one
   # draw button: Offer Draw, or Accept Draw once the other side has offered (accepting
-  # is offering the same; the game is drawn on the second). A player who has offered
-  # sees no button until the offer is withdrawn (its line opens it) or answered.
+  # is offering the same; the game is drawn on the second) beside Resign. A player who has
+  # offered sees no draw button until the offer is withdrawn (its line opens it) or answered.
   - type: list
     name: offers
     data: {class: Verdict, where: "game_id == record.id", order: "id asc"}
@@ -46,6 +46,16 @@ interface_views:
     fields: []
     set: {game_id: record.id, result: "'draw'", ended_by: "'agreed'"}
     submit: "{if(record.mode == 'remote' and if(viewer.id == record.white_id, record.black_offers.count, record.white_offers.count) > 0, 'Accept Draw', 'Offer Draw')}"
+    then: {page: game, id: record.id}
+  # Resign: a verdict that ends the game at once, the resigning side's loss (chess.js asks
+  # twice). Remotely the viewer resigns their own side; from one browser, the side to move.
+  - type: form
+    name: resign
+    creates: Verdict
+    when: "viewer != null and record.status == 'playing' and (viewer.id == record.white_id or (record.mode == 'remote' and viewer.id == record.black_id))"
+    fields: []
+    set: {game_id: record.id, result: "if(record.mode == 'remote', if(viewer.id == record.white_id, 'black_wins', 'white_wins'), if(record.turn == 'white', 'black_wins', 'white_wins'))", ended_by: "'resigned'"}
+    submit: Resign
     then: {page: game, id: record.id}
   - type: text
     name: pgn

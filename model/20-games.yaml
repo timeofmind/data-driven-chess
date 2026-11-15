@@ -49,7 +49,7 @@ enums:
   Answer: {values: [accepted, declined], labels: {accepted: "Accept", declined: "Decline"}}
   # How a game ends, and its result.
   Result: {values: [white_wins, black_wins, draw], labels: {white_wins: "White wins", black_wins: "Black wins", draw: "Draw"}}
-  Ending: {values: [checkmate, stalemate, agreed, king_taken, timeout], labels: {checkmate: "Checkmate", stalemate: "Stalemate", agreed: "Draw by agreement", king_taken: "The king was taken", timeout: "Out of time"}}
+  Ending: {values: [checkmate, stalemate, agreed, resigned, king_taken, timeout], labels: {checkmate: "Checkmate", stalemate: "Stalemate", agreed: "Draw by agreement", resigned: "Resignation", king_taken: "The king was taken", timeout: "Out of time"}}
   # Time control: the minutes each side starts with and the seconds added to
   # its clock at the start of each of its moves (chosen when the game starts).
   TimeControl:
@@ -499,7 +499,7 @@ classes:
       - {name: lk_file, type: integer, read_only: true, default_expr: "if(result == 'white_wins', game.black_king_file, if(result == 'black_wins', game.white_king_file, null))"}
       - {name: lk_rank, type: integer, read_only: true, default_expr: "if(result == 'white_wins', game.black_king_rank, if(result == 'black_wins', game.white_king_rank, null))"}
       # The verdict as a line in the game's Messages: what the player said by making it.
-      - {name: said, type: text, read_only: true, label: "Says", default_expr: "if(ended_by == 'agreed', 'offers a draw', if(ended_by == 'checkmate', 'claims checkmate', if(ended_by == 'stalemate', 'reports stalemate', 'reports the end of the game')))"}
+      - {name: said, type: text, read_only: true, label: "Says", default_expr: "if(ended_by == 'agreed', 'offers a draw', if(ended_by == 'resigned', 'resigns', if(ended_by == 'checkmate', 'claims checkmate', if(ended_by == 'stalemate', 'reports stalemate', 'reports the end of the game'))))"}
     relationships:
       belongs_to:
         # link: readable — black's account may name a game white's account owns (the check below keeps it to the players).
@@ -534,9 +534,11 @@ classes:
       - {check: "game.status == 'playing'", message: "the game is over already", slot: game_id}
       - {check: "ended_by != 'king_taken' and ended_by != 'timeout'", message: "a taken king, or the clock, ends the game by itself", slot: ended_by}
       - {check: "ended_by != 'agreed' or result == 'draw'", message: "an agreed end is a draw", slot: result}
+      # A resignation is the resigning player's own loss (from one browser, the side to move resigns).
+      - {check: "ended_by != 'resigned' or result == if(game.mode == 'remote', if(player_id == game.white_id, 'black_wins', 'white_wins'), if(game.turn == 'white', 'black_wins', 'white_wins'))", message: "a player resigns their own game", slot: result}
     triggers:
       # The game ends: from one browser on this report; remotely once both
-      # players agree — or on the winner's claim of checkmate alone, when the
+      # players agree — a resignation at once — or on the winner's claim of checkmate alone, when the
       # position bears it out: the losing side is to move and in check, and
       # every square beside its king is off the board, one of its own pieces
       # or attacked (blocked_*). The server never searches for a mate; it
@@ -545,7 +547,7 @@ classes:
       # block of the check: the board never claims a mate that isn't one, so
       # only a claim made around the board could end a game that way.
       - via: game_id
-        if: "self.game.mode == 'in_person' or self.agreeing.count >= 2 or (self.ended_by == 'checkmate' and self.game.check == true and self.game.turn == self.loser and self.player_id == if(self.loser == 'white', self.game.black_id, self.game.white_id) and ((self.lk_rank + 1) > 8 or self.blocked_n.count > 0) and ((self.lk_file + 1) > 8 or (self.lk_rank + 1) > 8 or self.blocked_ne.count > 0) and ((self.lk_file + 1) > 8 or self.blocked_e.count > 0) and ((self.lk_file + 1) > 8 or (self.lk_rank - 1) < 1 or self.blocked_se.count > 0) and ((self.lk_rank - 1) < 1 or self.blocked_s.count > 0) and ((self.lk_file - 1) < 1 or (self.lk_rank - 1) < 1 or self.blocked_sw.count > 0) and ((self.lk_file - 1) < 1 or self.blocked_w.count > 0) and ((self.lk_file - 1) < 1 or (self.lk_rank + 1) > 8 or self.blocked_nw.count > 0))"
+        if: "self.ended_by == 'resigned' or self.game.mode == 'in_person' or self.agreeing.count >= 2 or (self.ended_by == 'checkmate' and self.game.check == true and self.game.turn == self.loser and self.player_id == if(self.loser == 'white', self.game.black_id, self.game.white_id) and ((self.lk_rank + 1) > 8 or self.blocked_n.count > 0) and ((self.lk_file + 1) > 8 or (self.lk_rank + 1) > 8 or self.blocked_ne.count > 0) and ((self.lk_file + 1) > 8 or self.blocked_e.count > 0) and ((self.lk_file + 1) > 8 or (self.lk_rank - 1) < 1 or self.blocked_se.count > 0) and ((self.lk_rank - 1) < 1 or self.blocked_s.count > 0) and ((self.lk_file - 1) < 1 or (self.lk_rank - 1) < 1 or self.blocked_sw.count > 0) and ((self.lk_file - 1) < 1 or self.blocked_w.count > 0) and ((self.lk_file - 1) < 1 or (self.lk_rank + 1) > 8 or self.blocked_nw.count > 0))"
         set:
           status: "'finished'"
           winner: "if(self.result == 'white_wins', 'white', if(self.result == 'black_wins', 'black', null))"
